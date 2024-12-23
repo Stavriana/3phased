@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "958732696217",
+    "project_id": "eksaminiaia-8c996",
+    "storage_bucket": "eksaminiaia-8c996.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:958732696217:android:72792831dc95bf447c9608",
+        "android_client_info": {
+          "package_name": "com.example.eksaminiaia"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCVg37Rjk3dL1nwegv_eZ6fmMx5FARe1gU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
