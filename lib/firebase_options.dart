@@ -46,6 +46,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '958732696217',
     projectId: 'eksaminiaia-8c996',
     authDomain: 'eksaminiaia-8c996.firebaseapp.com',
+    databaseURL: 'https://eksaminiaia-8c996-default-rtdb.firebaseio.com',
     storageBucket: 'eksaminiaia-8c996.firebasestorage.app',
     measurementId: 'G-VGZJ7009JR',
   );
@@ -55,6 +56,7 @@ class DefaultFirebaseOptions {
     appId: '1:958732696217:android:72792831dc95bf447c9608',
     messagingSenderId: '958732696217',
     projectId: 'eksaminiaia-8c996',
+    databaseURL: 'https://eksaminiaia-8c996-default-rtdb.firebaseio.com',
     storageBucket: 'eksaminiaia-8c996.firebasestorage.app',
   );
 
@@ -63,6 +65,7 @@ class DefaultFirebaseOptions {
     appId: '1:958732696217:ios:d01fa4036a2fdeb97c9608',
     messagingSenderId: '958732696217',
     projectId: 'eksaminiaia-8c996',
+    databaseURL: 'https://eksaminiaia-8c996-default-rtdb.firebaseio.com',
     storageBucket: 'eksaminiaia-8c996.firebasestorage.app',
     iosBundleId: 'com.example.eksaminiaia',
   );
@@ -72,6 +75,7 @@ class DefaultFirebaseOptions {
     appId: '1:958732696217:ios:d01fa4036a2fdeb97c9608',
     messagingSenderId: '958732696217',
     projectId: 'eksaminiaia-8c996',
+    databaseURL: 'https://eksaminiaia-8c996-default-rtdb.firebaseio.com',
     storageBucket: 'eksaminiaia-8c996.firebasestorage.app',
     iosBundleId: 'com.example.eksaminiaia',
   );
@@ -82,7 +86,9 @@ class DefaultFirebaseOptions {
     messagingSenderId: '958732696217',
     projectId: 'eksaminiaia-8c996',
     authDomain: 'eksaminiaia-8c996.firebaseapp.com',
+    databaseURL: 'https://eksaminiaia-8c996-default-rtdb.firebaseio.com',
     storageBucket: 'eksaminiaia-8c996.firebasestorage.app',
     measurementId: 'G-0W8HXYK7EG',
   );
+
 }
