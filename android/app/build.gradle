@@ -1,14 +1,24 @@
 plugins {
     id "com.android.application"
-    id 'com.google.gms.google-services' // FlutterFire Configuration
+    id "com.google.gms.google-services" // Google Services plugin
     id "kotlin-android"
     id "dev.flutter.flutter-gradle-plugin"
 }
 
 android {
     namespace = "com.example.eksaminiaia"
-    compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    compileSdk = 34
+
+    defaultConfig {
+        applicationId = "com.example.eksaminiaia"
+        minSdk = 23
+        targetSdk = 33
+        versionCode = 1
+        versionName = "1.0"
+
+        // Enable multidex if needed
+        multiDexEnabled true
+    }
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
@@ -16,22 +26,26 @@ android {
     }
 
     kotlinOptions {
-        jvmTarget = '17'
-    }
-
-    defaultConfig {
-        applicationId = "com.example.eksaminiaia"
-        minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
-        versionCode = flutter.versionCode
-        versionName = flutter.versionName
+        jvmTarget = "17"
     }
 
     buildTypes {
-        release {
-            signingConfig = signingConfigs.debug
-        }
+    release {
+        // If you want to shrink resources, enable code shrinking
+        minifyEnabled true
+        shrinkResources true
+
+        // Use the default ProGuard rules
+        proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
     }
+
+    debug {
+        // Ensure debug builds do not attempt to shrink resources
+        minifyEnabled false
+        shrinkResources false
+    }
+}
+
 }
 
 flutter {
@@ -40,7 +54,7 @@ flutter {
 
 dependencies {
     implementation platform('com.google.firebase:firebase-bom:32.0.0') // Firebase BOM
-    implementation 'com.google.firebase:firebase-analytics-ktx' // Example Firebase dependency
-    implementation "androidx.core:core-ktx:1.10.1"
-    // Add other dependencies here
+    implementation 'com.google.firebase:firebase-analytics-ktx' // Firebase Analytics
+    implementation "androidx.core:core-ktx:1.10.1" // AndroidX core
+    implementation "androidx.multidex:multidex:2.0.1" // Enable MultiDex
 }

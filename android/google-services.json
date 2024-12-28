@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "958732696217",
+    "firebase_url": "https://eksaminiaia-8c996-default-rtdb.firebaseio.com",
+    "project_id": "eksaminiaia-8c996",
+    "storage_bucket": "eksaminiaia-8c996.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:958732696217:android:72792831dc95bf447c9608",
+        "android_client_info": {
+          "package_name": "com.example.eksaminiaia"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "958732696217-1m69b6ks3qur5i9kmcsq006rj24h8f7n.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.eksaminiaia",
+            "certificate_hash": "cd2d2f1007fa97a2b2a01dc9d96835bcd982ce93"
+          }
+        },
+        {
+          "client_id": "958732696217-sjubtg9u5pk3e9tfd2gkhvn7g54dsn4g.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCVg37Rjk3dL1nwegv_eZ6fmMx5FARe1gU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "958732696217-sjubtg9u5pk3e9tfd2gkhvn7g54dsn4g.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "958732696217-e4oogf47pg4mql5c2862nfd973sj10it.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.eksaminiaia"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
