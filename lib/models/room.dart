@@ -1,14 +1,14 @@
 //import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Game{
- final String? id;
+ final String? id; //4digit code
  final int numofteams;
- final int room;
+ final int numofplayers;
 
  const Game({
   this.id,
   required this.numofteams,
-  required this.room,
+  required this.numofplayers,
 
  }
 
@@ -17,7 +17,7 @@ class Game{
 
   toJson(){
     return{
-      "room" : room,
+      "numofplayers" : numofplayers,
       "numofteams" :numofteams,
     };
   }

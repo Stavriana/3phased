@@ -25,7 +25,7 @@ class RoomInputPage extends StatelessWidget {
                 children: [
                   // Room Number Input Field
                   TextFormField(
-                    controller: controller.room,
+                    controller: controller.numofplayers,
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(
                       labelText: 'Room Number',
@@ -69,7 +69,7 @@ class RoomInputPage extends StatelessWidget {
                       if (formKey.currentState!.validate()) {
                         // Create Game model instance
                         final game = Game(
-                          room: int.parse(controller.room.text.trim()),
+                          numofplayers: int.parse(controller.numofplayers.text.trim()),
                           numofteams:
                               int.parse(controller.numofteams.text.trim()),
                         );

@@ -7,7 +7,7 @@ plugins {
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id "dev.flutter.flutter-gradle-plugin"
 }
-//apply plugin: 'com.google.gms.google-services'
+
 
 android {
     namespace = "com.example.eksaminiaia"
@@ -48,5 +48,10 @@ flutter {
 }
 
 dependencies {
-    classpath 'com.google.gms:google-services:4.3.15' // Latest version
+    //classpath 'com.google.gms:google-services:4.3.15' // Latest version
+    classpath 'com.google.gms:google-services:4.3.15'
 }
+
+//apply plugin: 'com.google.gms.google-services'
+apply plugin: "com.google.gms.google-services"
+classpath("com.google.gms:google-services:4.3.15")
