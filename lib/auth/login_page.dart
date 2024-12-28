@@ -17,6 +17,8 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _auth = AuthService();
 
+  bool isLoading = false;
+
   final _email = TextEditingController();
   final _password = TextEditingController();
 
@@ -53,6 +55,21 @@ class _LoginScreenState extends State<LoginScreen> {
             CustomButton(
               label: "Login",
               onPressed: _login,
+            ),
+            SizedBox(height: 10),
+            isLoading
+                ? const CircularProgressIndicator()
+                : CustomButton(
+              label: "Sign in with Google",
+              onPressed: () async{
+                setState(() {
+                  isLoading = true;
+                });
+                await _auth.loginwithGoogle();
+                setState(() {
+                  isLoading = false;
+                });
+              },
             ),
             const SizedBox(height: 5),
             Row(mainAxisAlignment: MainAxisAlignment.center, children: [
