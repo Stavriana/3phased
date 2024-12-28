@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 //import 'package:eksaminiaia/controllers/code_controller.dart';
 import 'package:eksaminiaia/views/set_it_up_page.dart'; // Import SetItUpPage
 import 'package:eksaminiaia/controllers.dart/code_controller.dart';
+
 class CodeInputView extends StatelessWidget {
   const CodeInputView({super.key});
 
@@ -27,7 +28,7 @@ class CodeInputView extends StatelessWidget {
               } catch (e) {
                 Get.snackbar(
                   'Error',
-                  e?.toString() ?? 'Failed to create room. Please try again.',
+                  e.toString(), // Fixed here
                   snackPosition: SnackPosition.BOTTOM,
                 );
               }

@@ -1,34 +1,54 @@
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:eksaminiaia/repositories/updateRoom_repository.dart';
+import 'package:eksaminiaia/models/room.dart';
+import 'package:eksaminiaia/repositories/updateroom_repository.dart';
 
 class UpdateRoomController extends GetxController {
-  final CodeRepository codeRepository = CodeRepository();
+  final UpdateRoomRepository repository;
 
-  final TextEditingController numOfPlayersController = TextEditingController();
-  final TextEditingController numOfTeamsController = TextEditingController();
+  UpdateRoomController({required this.repository});
 
-  Future<void> updateRoom(String roomCode, int numOfPlayers, int numOfTeams) async {
+  // Reactive variables for room settings
+  var numOfTeams = 2.obs;
+  var numOfPlayers = 4.obs;
+  var numOfWords = 3.obs;
+
+  // Save a new room
+  Future<void> saveRoom({
+    required String roomCode,
+    required int teams,
+    required int players,
+    required int words,
+    required int t1,
+    required int t2,
+    required int t3,
+  }) async {
     try {
-      await codeRepository.updateRoom(roomCode, numOfPlayers, numOfTeams);
-      Get.snackbar(
-        'Success',
-        'Room updated successfully!',
-        snackPosition: SnackPosition.BOTTOM,
+      final game = Game(
+        id: roomCode,
+        numofteams: teams,
+        numofplayers: players,
+        numofwords: words,
+        t1: t1,
+        t2: t2,
+        t3: t3,
       );
+      await repository.saveRoom(game);
     } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Failed to update room: ${e.toString()}',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      throw Exception('Failed to save room: $e');
     }
   }
 
-  @override
-  void onClose() {
-    numOfPlayersController.dispose();
-    numOfTeamsController.dispose();
-    super.onClose();
+  // Update an existing room
+  Future<void> updateRoom(String roomCode) async {
+    try {
+      await repository.updateRoom(
+        roomCode,
+        numOfPlayers.value,
+        numOfTeams.value,
+        numOfWords.value,
+      );
+    } catch (e) {
+      throw Exception('Failed to update room: $e');
+    }
   }
 }
