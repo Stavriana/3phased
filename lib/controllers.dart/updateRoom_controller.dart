@@ -12,6 +12,11 @@ class UpdateRoomController extends GetxController {
   var numOfPlayers = 4.obs;
   var numOfWords = 3.obs;
 
+  // Reactive variables for sliders (T1, T2, T3)
+  var t1 = 0.obs; // SAY WHAT?
+  var t2 = 0.obs; // PANTOMIME
+  var t3 = 0.obs; // ONE WORD
+
   // Save a new room
   Future<void> saveRoom({
     required String roomCode,
@@ -39,14 +44,26 @@ class UpdateRoomController extends GetxController {
   }
 
   // Update an existing room
-  Future<void> updateRoom(String roomCode) async {
+  Future<void> updateRoom({
+    required String roomCode,
+    required int teams,
+    required int players,
+    required int words,
+    required int t1,
+    required int t2,
+    required int t3,
+  }) async {
     try {
-      await repository.updateRoom(
-        roomCode,
-        numOfPlayers.value,
-        numOfTeams.value,
-        numOfWords.value,
+      final game = Game(
+        id: roomCode,
+        numofteams: teams,
+        numofplayers: players,
+        numofwords: words,
+        t1: t1,
+        t2: t2,
+        t3: t3,
       );
+      await repository.updateRoom(game);
     } catch (e) {
       throw Exception('Failed to update room: $e');
     }

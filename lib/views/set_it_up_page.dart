@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:eksaminiaia/controllers.dart/updateroom_controller.dart';
 import 'package:eksaminiaia/repositories/updateroom_repository.dart';
 import 'package:eksaminiaia/widgets/custom_counter_widget.dart';
+import 'package:eksaminiaia/widgets/custom_slider_widget.dart';
 
 class SetItUpPage extends StatelessWidget {
   final String roomCode;
@@ -11,7 +12,7 @@ class SetItUpPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Provide the required repository parameter
+    // Initialize the controller
     final UpdateRoomController controller = Get.put(
       UpdateRoomController(repository: UpdateRoomRepository()),
     );
@@ -29,6 +30,8 @@ class SetItUpPage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     const SizedBox(height: 40),
+
+                    // Number of Teams Counter
                     CustomCounterWidget(
                       labelText: "NUMBER OF TEAMS",
                       minValue: 2,
@@ -39,6 +42,8 @@ class SetItUpPage extends StatelessWidget {
                       },
                     ),
                     const SizedBox(height: 20),
+
+                    // Number of Players Counter
                     CustomCounterWidget(
                       labelText: "NUMBER OF PLAYERS",
                       minValue: 4,
@@ -49,6 +54,8 @@ class SetItUpPage extends StatelessWidget {
                       },
                     ),
                     const SizedBox(height: 20),
+
+                    // Words Per Player Counter
                     CustomCounterWidget(
                       labelText: "WORDS PER PLAYER",
                       minValue: 3,
@@ -58,20 +65,70 @@ class SetItUpPage extends StatelessWidget {
                         controller.numOfWords.value = value;
                       },
                     ),
+                    const SizedBox(height: 30),
+
+                    // Say What? Slider (T1)
+                    CustomSliderWidget(
+                      labelText: "SAY WHAT? (T1)",
+                      minValue: 0,
+                      maxValue: 160,
+                      stepSize: 10,
+                      initialValue: controller.t1.value.toDouble(),
+                      onChanged: (value) {
+                        controller.t1.value = value.toInt();
+                      },
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Pantomime Slider (T2)
+                    CustomSliderWidget(
+                      labelText: "PANTOMIME (T2)",
+                      minValue: 0,
+                      maxValue: 160,
+                      stepSize: 10,
+                      initialValue: controller.t2.value.toDouble(),
+                      onChanged: (value) {
+                        controller.t2.value = value.toInt();
+                      },
+                    ),
+                    const SizedBox(height: 20),
+
+                    // One Word Slider (T3)
+                    CustomSliderWidget(
+                      labelText: "ONE WORD (T3)",
+                      minValue: 0,
+                      maxValue: 160,
+                      stepSize: 10,
+                      initialValue: controller.t3.value.toDouble(),
+                      onChanged: (value) {
+                        controller.t3.value = value.toInt();
+                      },
+                    ),
                     const SizedBox(height: 40),
+
+                    // Submit Button
                     ElevatedButton(
                       onPressed: () async {
                         try {
-                          await controller.updateRoom(roomCode);
+                          // Save the room details
+                          await controller.saveRoom(
+                            roomCode: roomCode,
+                            teams: controller.numOfTeams.value,
+                            players: controller.numOfPlayers.value,
+                            words: controller.numOfWords.value,
+                            t1: controller.t1.value,
+                            t2: controller.t2.value,
+                            t3: controller.t3.value,
+                          );
                           Get.snackbar(
                             'Success',
-                            'Room updated successfully!',
+                            'Room saved successfully!',
                             snackPosition: SnackPosition.BOTTOM,
                           );
                         } catch (e) {
                           Get.snackbar(
                             'Error',
-                            'Failed to update room. Please try again.',
+                            'Failed to save room. Please try again.',
                             snackPosition: SnackPosition.BOTTOM,
                           );
                         }

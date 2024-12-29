@@ -18,39 +18,17 @@ class UpdateRoomRepository {
   }
 
   // Update an existing room
-  Future<void> updateRoom(String roomCode, int players, int teams, int words) async {
-    final roomDoc = _firestore.collection('Rooms').doc(roomCode);
+  Future<void> updateRoom(Game game) async {
+    final roomDoc = _firestore.collection('Rooms').doc(game.id);
 
     try {
       if (!(await roomDoc.get()).exists) {
-        throw Exception('Room with code $roomCode does not exist.');
+        throw Exception('Room with code ${game.id} does not exist.');
       }
 
-      await roomDoc.update({
-        "numofplayers": players,
-        "numofteams": teams,
-        "numofwords": words,
-        "updatedAt": FieldValue.serverTimestamp(),
-      });
+      await roomDoc.update(game.toJson()..addAll({"updatedAt": FieldValue.serverTimestamp()}));
     } catch (e) {
       throw Exception('Failed to update room: $e');
     }
-  }
-
-  // Fetch a room by its ID
-  Future<Game?> fetchRoom(String roomCode) async {
-    try {
-      final docSnapshot = await _firestore.collection('Rooms').doc(roomCode).get();
-
-      if (!docSnapshot.exists) return null;
-
-      final data = docSnapshot.data();
-      if (data != null) {
-        return Game.fromFirestore(roomCode, data);
-      }
-    } catch (e) {
-      throw Exception('Failed to fetch room: $e');
-    }
-    return null;
   }
 }
