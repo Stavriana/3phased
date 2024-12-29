@@ -4,6 +4,7 @@ import 'package:eksaminiaia/controllers.dart/updateroom_controller.dart';
 import 'package:eksaminiaia/repositories/updateroom_repository.dart';
 import 'package:eksaminiaia/widgets/custom_counter_widget.dart';
 import 'package:eksaminiaia/widgets/custom_slider_widget.dart';
+import 'package:eksaminiaia/views/teams_setup.dart'; // Ensure this import is correct
 
 class SetItUpPage extends StatelessWidget {
   final String roomCode;
@@ -106,9 +107,9 @@ class SetItUpPage extends StatelessWidget {
                     ),
                     const SizedBox(height: 40),
 
-                    // Submit Button
-                    ElevatedButton(
-                      onPressed: () async {
+                    // Submit Button Wrapped in GestureDetector for onTap
+                    GestureDetector(
+                      onTap: () async {
                         try {
                           // Save the room details
                           await controller.saveRoom(
@@ -120,6 +121,10 @@ class SetItUpPage extends StatelessWidget {
                             t2: controller.t2.value,
                             t3: controller.t3.value,
                           );
+
+                          // Navigate to TeamsSetupPage
+                          Get.to(() => TeamsSetupPage(roomCode: roomCode));
+
                           Get.snackbar(
                             'Success',
                             'Room saved successfully!',
@@ -133,7 +138,24 @@ class SetItUpPage extends StatelessWidget {
                           );
                         }
                       },
-                      child: const Text('Submit'),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 12,
+                          horizontal: 20,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.blue,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Text(
+                          'Submit',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
                     ),
                   ],
                 ),
