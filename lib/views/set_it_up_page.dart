@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+//import 'package:eksaminiaia/controllers/updateroom_controller.dart';
 import 'package:eksaminiaia/controllers.dart/updateroom_controller.dart';
 import 'package:eksaminiaia/repositories/updateroom_repository.dart';
 import 'package:eksaminiaia/widgets/custom_counter_widget.dart';
 import 'package:eksaminiaia/widgets/custom_slider_widget.dart';
-//import 'package:eksaminiaia/views/teams_setup.dart'; // Ensure this import is correct
-import 'teams_setup.dart';
+import 'teams_setup.dart'; // Ensure this file path is correct
+
 class SetItUpPage extends StatelessWidget {
   final String roomCode;
 
@@ -13,7 +14,7 @@ class SetItUpPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Initialize the controller
+    // Initialize the UpdateRoomController with Get.put for dependency injection
     final UpdateRoomController controller = Get.put(
       UpdateRoomController(repository: UpdateRoomRepository()),
     );
@@ -107,7 +108,7 @@ class SetItUpPage extends StatelessWidget {
                     ),
                     const SizedBox(height: 40),
 
-                    // Submit Button Wrapped in GestureDetector for onTap
+                    // Submit Button
                     GestureDetector(
                       onTap: () async {
                         try {
@@ -122,15 +123,17 @@ class SetItUpPage extends StatelessWidget {
                             t3: controller.t3.value,
                           );
 
-                          // Navigate to TeamsSetupPage
+                          // Navigate to TeamsSet page
                           Get.to(() => TeamsSet(roomCode: roomCode));
 
+                          // Show success message
                           Get.snackbar(
                             'Success',
                             'Room saved successfully!',
                             snackPosition: SnackPosition.BOTTOM,
                           );
                         } catch (e) {
+                          // Show error message
                           Get.snackbar(
                             'Error',
                             'Failed to save room. Please try again.',

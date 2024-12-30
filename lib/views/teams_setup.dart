@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-//import 'package:eksaminiaia/controllers/updateroom_controller.dart';
+//import 'package:eksaminiaia/controllers/updateRoom_controller.dart';
 import 'package:eksaminiaia/controllers.dart/updateroom_controller.dart';
 import 'package:eksaminiaia/repositories/updateroom_repository.dart';
-//import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:developer'; // For logging instead of print
+import 'package:eksaminiaia/models/room.dart';
 
 class TeamsSet extends StatefulWidget {
   final String roomCode;
@@ -35,7 +35,12 @@ class TeamsSetState extends State<TeamsSet> {
   void fetchGameDetails() {
     Future.delayed(Duration.zero, () {
       setState(() {
-        // You can update the numOfTeams dynamically if needed
+        teamNames.clear();
+        for (int i = 1; i <= _updateRoomController.numOfTeams.value; i++) {
+          final teamKey = "Team $i";
+          final team = _updateRoomController.ourteams[teamKey];
+          teamNames[i] = team?.name ?? "";
+        }
       });
     });
   }
@@ -43,21 +48,26 @@ class TeamsSetState extends State<TeamsSet> {
   void handleNameChange(int teamNumber, String name) {
     setState(() {
       teamNames[teamNumber] = name;
+      final teamKey = "Team $teamNumber";
+      final existingTeam = _updateRoomController.ourteams[teamKey] ??
+          Team(name: "", color: "", players: []);
+      _updateRoomController.ourteams[teamKey] = Team(
+        name: name,
+        color: existingTeam.color,
+        players: existingTeam.players,
+      );
     });
   }
 
   Future<void> saveTeams() async {
     try {
-      // Create a Map for team names
-      final teamsMap = teamNames.map((key, value) => MapEntry("Team $key", value));
-
-      // Use the logging framework for debugging
-      log('Teams Map: $teamsMap', name: 'TeamsSet');
+      // Log current teams for debugging
+      log('Saving Teams: ${_updateRoomController.ourteams}', name: 'TeamsSet');
 
       // Save the room using the controller
       await _updateRoomController.saveRoom(
         roomCode: widget.roomCode,
-        teams: teamNames.length, // Number of teams
+        teams: _updateRoomController.numOfTeams.value,
         players: _updateRoomController.numOfPlayers.value,
         words: _updateRoomController.numOfWords.value,
         t1: _updateRoomController.t1.value,
@@ -67,7 +77,7 @@ class TeamsSetState extends State<TeamsSet> {
 
       Get.snackbar('Success', 'Teams have been saved successfully');
     } catch (e) {
-      log('Error saving teams: $e', name: 'TeamsSet', level: 1000); // Log error
+      log('Error saving teams: $e', name: 'TeamsSet', level: 1000);
       Get.snackbar('Error', 'Failed to save teams: $e');
     }
   }

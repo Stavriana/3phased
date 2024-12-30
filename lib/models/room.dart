@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 class Game {
   final String? id; // 4-digit code
   final int numofteams;
@@ -21,19 +23,22 @@ class Game {
 
   // Convert to Firestore format
   Map<String, dynamic> toJson() {
+    log('Converting Game to JSON: $this', name: 'GameModel');
     return {
-      "numofplayers": numofplayers,
+      "id": id,
       "numofteams": numofteams,
+      "numofplayers": numofplayers,
       "numofwords": numofwords,
       "t1": t1,
       "t2": t2,
       "t3": t3,
-      "ourteams": ourteams.map((key, team) => MapEntry(key, team.toJson())).map((key, value) => MapEntry(key, value)),
+      "ourteams": ourteams.map((key, team) => MapEntry(key, team.toJson())),
     };
   }
 
   // Create a Game object from Firestore data
   factory Game.fromFirestore(String id, Map<String, dynamic> data) {
+    log('Converting Firestore Data to Game: $data', name: 'GameModel');
     return Game(
       id: id,
       numofteams: data["numofteams"] ?? 0,
@@ -57,12 +62,13 @@ class Team {
 
   const Team({
     required this.name,
-    required this.color,
-    required this.players,
+    this.color = "", // Default empty string
+    this.players = const [], // Default empty list
   });
 
   // Convert to Firestore format
   Map<String, dynamic> toJson() {
+    log('Converting Team to JSON: $this', name: 'TeamModel');
     return {
       "name": name,
       "color": color,
@@ -72,6 +78,7 @@ class Team {
 
   // Create a Team object from Firestore data
   factory Team.fromJson(Map<String, dynamic> data) {
+    log('Converting Firestore Data to Team: $data', name: 'TeamModel');
     return Team(
       name: data["name"] ?? "",
       color: data["color"] ?? "",
@@ -94,6 +101,7 @@ class Player {
 
   // Convert to Firestore format
   Map<String, dynamic> toJson() {
+    log('Converting Player to JSON: $this', name: 'PlayerModel');
     return {
       "name": name,
       "id": id,
@@ -102,6 +110,7 @@ class Player {
 
   // Create a Player object from Firestore data
   factory Player.fromJson(Map<String, dynamic> data) {
+    log('Converting Firestore Data to Player: $data', name: 'PlayerModel');
     return Player(
       name: data["name"] ?? "",
       id: data["id"] ?? "",

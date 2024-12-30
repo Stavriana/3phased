@@ -1,23 +1,23 @@
 import 'package:get/get.dart';
 import 'package:eksaminiaia/models/room.dart';
 import 'package:eksaminiaia/repositories/updateroom_repository.dart';
+import 'dart:developer';
 
 class UpdateRoomController extends GetxController {
   final UpdateRoomRepository repository;
 
   UpdateRoomController({required this.repository});
 
-  // Reactive variables for room settings
+  // Reactive variables
   var numOfTeams = 2.obs;
   var numOfPlayers = 4.obs;
   var numOfWords = 3.obs;
-
-  // Reactive variables for sliders (T1, T2, T3)
   var t1 = 0.obs; // SAY WHAT?
   var t2 = 0.obs; // PANTOMIME
   var t3 = 0.obs; // ONE WORD
+  var ourteams = <String, Team>{}.obs;
 
-  // Save a new room
+  // Save room
   Future<void> saveRoom({
     required String roomCode,
     required int teams,
@@ -26,9 +26,10 @@ class UpdateRoomController extends GetxController {
     required int t1,
     required int t2,
     required int t3,
-    
   }) async {
     try {
+      log('Preparing to save room. Our Teams: ${ourteams.toString()}', name: 'UpdateRoomController');
+
       final game = Game(
         id: roomCode,
         numofteams: teams,
@@ -37,15 +38,19 @@ class UpdateRoomController extends GetxController {
         t1: t1,
         t2: t2,
         t3: t3,
-        ourteams: {},
+        ourteams: Map<String, Team>.from(ourteams), // Convert obs map to a regular map
       );
+
       await repository.saveRoom(game);
+
+      log('Room saved successfully.', name: 'UpdateRoomController');
     } catch (e) {
+      log('Error saving room: $e', name: 'UpdateRoomController', level: 1000);
       throw Exception('Failed to save room: $e');
     }
   }
 
-  // Update an existing room
+  // Update room
   Future<void> updateRoom({
     required String roomCode,
     required int teams,
@@ -54,9 +59,10 @@ class UpdateRoomController extends GetxController {
     required int t1,
     required int t2,
     required int t3,
-    //required Map ourteams,
   }) async {
     try {
+      log('Preparing to update room. Our Teams: ${ourteams.toString()}', name: 'UpdateRoomController');
+
       final game = Game(
         id: roomCode,
         numofteams: teams,
@@ -65,11 +71,37 @@ class UpdateRoomController extends GetxController {
         t1: t1,
         t2: t2,
         t3: t3,
-        
+        ourteams: Map<String, Team>.from(ourteams), // Convert obs map to a regular map
       );
+
       await repository.updateRoom(game);
+
+      log('Room updated successfully.', name: 'UpdateRoomController');
     } catch (e) {
+      log('Error updating room: $e', name: 'UpdateRoomController', level: 1000);
       throw Exception('Failed to update room: $e');
+    }
+  }
+
+  // Fetch room data
+  Future<void> fetchRoom(String roomCode) async {
+    try {
+      log('Fetching room data for code: $roomCode', name: 'UpdateRoomController');
+
+      final game = await repository.fetchRoom(roomCode);
+
+      numOfTeams.value = game.numofteams;
+      numOfPlayers.value = game.numofplayers;
+      numOfWords.value = game.numofwords;
+      t1.value = game.t1;
+      t2.value = game.t2;
+      t3.value = game.t3;
+      ourteams.value = game.ourteams;
+
+      log('Room data fetched successfully. Our Teams: ${ourteams.toString()}', name: 'UpdateRoomController');
+    } catch (e) {
+      log('Error fetching room data: $e', name: 'UpdateRoomController', level: 1000);
+      throw Exception('Failed to fetch room data: $e');
     }
   }
 }
