@@ -1,66 +1,62 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:eksaminiaia/models/room.dart';  // Ensure your models are properly imported
-import 'package:eksaminiaia/widgets/points_display.dart';  // Import the file where your models are defined
-//import 'package:eksaminiaia/models/room.dart';
-class AvatarSelectionScreen extends StatefulWidget {
-  final String code;  // Add a 'code' parameter to accept the room code
+import 'dart:developer';
+import 'package:eksaminiaia/models/room.dart';
+import 'package:eksaminiaia/widgets/points_display.dart';
 
-  const AvatarSelectionScreen({super.key, required this.code});
+class PointsPage extends StatefulWidget {
+  final String roomCode;
+
+  const PointsPage({super.key, required this.roomCode});
 
   @override
-  AvatarSelectionScreenState createState() => AvatarSelectionScreenState();
+  PointsPageState createState() => PointsPageState();
 }
 
-class AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
-  late Future<Game> gameData;
+class PointsPageState extends State<PointsPage> {
+  late Future<Game?> gameData;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Use the 'code' passed through the constructor to fetch the game data
-    gameData = fetchGameData(widget.code);
+    gameData = fetchGameData(widget.roomCode);
   }
 
-  Future<Game> fetchGameData(String roomCode) async {
-  try {
-    // Fetch the game data from Firestore using the passed roomCode
-    DocumentSnapshot docSnapshot = await FirebaseFirestore.instance
-        .collection('games')
-        .doc(roomCode)  // Use the roomCode here
-        .get();
+  Future<Game?> fetchGameData(String roomCode) async {
+    try {
+      log('Fetching room data for code: $roomCode');
 
-    // Log the roomCode and document status
-    //log('Fetching game data for room: $roomCode');
-    //log('Document exists: ${docSnapshot.exists}');
+      DocumentSnapshot docSnapshot = await FirebaseFirestore.instance
+          .collection('Rooms')
+          .doc(roomCode)
+          .get();
 
-    if (!docSnapshot.exists) {
-      throw Exception('Room not found');
+      if (!docSnapshot.exists) {
+        log('Room not found for code: $roomCode');
+        return null;
+      }
+
+      final data = docSnapshot.data();
+      if (data == null) {
+        log('No data found for room: $roomCode');
+        return null;
+      }
+
+      return Game.fromFirestore(docSnapshot.id, data as Map<String, dynamic>);
+    } catch (e) {
+      log('Error fetching room data: $e');
+      return null;
     }
-
-    final data = docSnapshot.data();
-    if (data == null) {
-      throw Exception('No data found');
-    }
-
-    // Convert the Firestore document into a Game model
-    return Game.fromFirestore(docSnapshot.id, data as Map<String, dynamic>);
-  } catch (e) {
-    // Log the error and rethrow
-    //log('Error fetching game data: $e');
-    throw Exception('Error fetching game data: $e');
   }
-}
-
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Score Page'),
+        title: Text('Points Page'),
         backgroundColor: Colors.red,
       ),
-      body: FutureBuilder<Game>(
+      body: FutureBuilder<Game?>(
         future: gameData,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -68,16 +64,39 @@ class AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
           }
 
           if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
+            return Center(
+              child: Text(
+                'Error: ${snapshot.error}',
+                style: TextStyle(color: Colors.red),
+              ),
+            );
           }
 
-          if (!snapshot.hasData) {
-            return Center(child: Text('No data found.'));
+          if (snapshot.data == null) {
+            return Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Room not found. Please check the code.',
+                    style: TextStyle(fontSize: 18, color: Colors.red),
+                  ),
+                  SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text('Go Back'),
+                  ),
+                ],
+              ),
+            );
           }
 
           Game game = snapshot.data!;
-          int numofteams = game.numofteams;  // Number of teams
-          Map<String, Team> teams = game.ourteams; // The teams
+          Map<String, Team> teams = game.ourteams;
+
+          // Sort teams by points in descending order
+          List<MapEntry<String, Team>> sortedTeams = teams.entries.toList()
+            ..sort((a, b) => b.value.points.compareTo(a.value.points));
 
           return Padding(
             padding: const EdgeInsets.all(16.0),
@@ -85,7 +104,7 @@ class AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'SCORE',
+                  'SCOREBOARD',
                   style: TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
@@ -93,29 +112,31 @@ class AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
                   ),
                 ),
                 SizedBox(height: 20),
-                // Display team widgets dynamically based on numofteams
-                Column(
-                  children: List.generate(numofteams, (index) {
-                    String teamKey = teams.keys.elementAt(index); // Get team key
-                    Team team = teams[teamKey]!;  // Get team by key
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 16.0),
-                      child: ScoreBox(team: team),
-                    );
-                  }),
+                // Make the list of teams scrollable
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: sortedTeams.length,
+                    itemBuilder: (context, index) {
+                      String teamKey = sortedTeams[index].key;
+                      Team team = sortedTeams[index].value;
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 16.0),
+                        child: ScoreBox(team: team),
+                      );
+                    },
+                  ),
                 ),
-                Spacer(),
                 ElevatedButton(
                   onPressed: () {
-                    // Handle NEXT button press
+                    Navigator.pop(context); // Replace with your next navigation
                   },
                   style: ElevatedButton.styleFrom(
-                    foregroundColor: Colors.white, 
+                    foregroundColor: Colors.white,
                     backgroundColor: Colors.purple,
                     padding: EdgeInsets.symmetric(horizontal: 50, vertical: 20),
                     textStyle: TextStyle(fontSize: 20),
                   ),
-                  child: Text('NEXT'),  // 'child' should be last
+                  child: Text('NEXT'),
                 ),
               ],
             ),

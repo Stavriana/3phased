@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'dart:developer'; // For logging
-//import 'package:eksaminiaia/controllers/updateroom_controller.dart';
+import 'dart:developer';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:eksaminiaia/controllers.dart/updateroom_controller.dart';
 import 'package:eksaminiaia/repositories/updateroom_repository.dart';
 import 'package:eksaminiaia/models/room.dart';
@@ -55,21 +55,16 @@ class TeamsSetState extends State<TeamsSet> {
           final teamKey = "Team $i";
           final team = _updateRoomController.ourteams[teamKey];
 
-          // Populate `teamNames` and initialize TextEditingControllers
           final name = team?.name ?? "";
           teamNames[i] = name;
-
-          // Only initialize controller if it doesn't already exist
           nameControllers[i] = TextEditingController(text: name);
 
-          // Populate `teamColors`
-          final color = _hexToColor(team?.color ?? "#FFFFFF");
+          final color = _hexToColor(team?.color ?? "#FFFFFF"); // Parse #RRGGBB back to Color
           teamColors[i] = color;
-          if (color != Color(0xFFFFFFFF)) {
+          if (color != const Color(0xFFFFFFFF)) {
             selectedColors.add(color);
           }
 
-          // Ensure `ourteams` has a default entry for each team
           if (team == null) {
             _updateRoomController.ourteams[teamKey] =
                 Team(name: "", color: "#FFFFFF", players: []);
@@ -85,7 +80,6 @@ class TeamsSetState extends State<TeamsSet> {
       teamNames[teamNumber] = name;
       final teamKey = "Team $teamNumber";
 
-      // Update the team in the controller's `ourteams`
       final existingTeam = _updateRoomController.ourteams[teamKey] ??
           Team(name: "", color: "#FFFFFF", players: []);
       _updateRoomController.ourteams[teamKey] = Team(
@@ -100,16 +94,15 @@ class TeamsSetState extends State<TeamsSet> {
   void handleColorChange(int teamNumber, Color color) {
     setState(() {
       final previousColor = teamColors[teamNumber];
-      if (previousColor != null && previousColor != Color(0xFFFFFFFF)) {
-        selectedColors.remove(previousColor); // Remove previously selected color
+      if (previousColor != null && previousColor != const Color(0xFFFFFFFF)) {
+        selectedColors.remove(previousColor);
       }
 
       teamColors[teamNumber] = color;
-      selectedColors.add(color); // Add the new color
+      selectedColors.add(color);
 
       final teamKey = "Team $teamNumber";
 
-      // Update the team in the controller's `ourteams`
       final existingTeam = _updateRoomController.ourteams[teamKey] ??
           Team(name: "", color: "#FFFFFF", players: []);
       _updateRoomController.ourteams[teamKey] = Team(
@@ -123,19 +116,37 @@ class TeamsSetState extends State<TeamsSet> {
   // Save teams data to Firestore
   Future<void> saveTeams() async {
     try {
-      // Log current teams for debugging
-      log('Saving Teams: ${_updateRoomController.ourteams}', name: 'TeamsSet');
+      final updatedTeams = <String, Map<String, dynamic>>{};
+      teamNames.forEach((teamNumber, name) {
+        final teamKey = "Team $teamNumber";
+        final colorHex = _colorToHex(teamColors[teamNumber] ?? const Color(0xFFFFFFFF)); // Convert to #RRGGBB format
 
-      // Save the room using the controller
-      await _updateRoomController.saveRoom(
-        roomCode: widget.roomCode,
-        teams: _updateRoomController.numOfTeams.value,
-        players: _updateRoomController.numOfPlayers.value,
-        words: _updateRoomController.numOfWords.value,
-        t1: _updateRoomController.t1.value,
-        t2: _updateRoomController.t2.value,
-        t3: _updateRoomController.t3.value,
-      );
+        updatedTeams[teamKey] = {
+          "name": name,
+          "color": colorHex, // Save color in #RRGGBB format
+          "points": _updateRoomController.ourteams[teamKey]?.points ?? 0,
+          "players": _updateRoomController.ourteams[teamKey]?.players
+                  .map((player) => player.toJson())
+                  .toList() ??
+              [],
+        };
+      });
+
+      log('Saving Teams: $updatedTeams', name: 'TeamsSet');
+
+      // Save the updated data to Firestore
+      await FirebaseFirestore.instance
+          .collection('Rooms')
+          .doc(widget.roomCode)
+          .update({
+        "numofteams": _updateRoomController.numOfTeams.value,
+        "numofplayers": _updateRoomController.numOfPlayers.value,
+        "numofwords": _updateRoomController.numOfWords.value,
+        "ourteams": updatedTeams,
+        "t1": _updateRoomController.t1.value,
+        "t2": _updateRoomController.t2.value,
+        "t3": _updateRoomController.t3.value,
+      });
 
       Get.snackbar('Success', 'Teams have been saved successfully');
     } catch (e) {
@@ -145,14 +156,11 @@ class TeamsSetState extends State<TeamsSet> {
   }
 
   // Convert Color to Hex String
-  // Convert Color to Hex String
-   String _colorToHex(Color color) {
-    return '#${color.r.toInt().toRadixString(16).padLeft(2, '0')}'
-         '${color.g.toInt().toRadixString(16).padLeft(2, '0')}'
-         '${color.b.toInt().toRadixString(16).padLeft(2, '0')}';
+  String _colorToHex(Color color) {
+    return '#${color.red.toRadixString(16).padLeft(2, '0').toUpperCase()}'
+           '${color.green.toRadixString(16).padLeft(2, '0').toUpperCase()}'
+           '${color.blue.toRadixString(16).padLeft(2, '0').toUpperCase()}';
   }
-
-
 
   // Convert Hex String to Color
   Color _hexToColor(String hex) {
@@ -203,7 +211,7 @@ class TeamsSetState extends State<TeamsSet> {
                     ),
                     Expanded(
                       child: TextField(
-                        controller: nameControllers[i], // Use persistent controller
+                        controller: nameControllers[i],
                         onChanged: (value) => handleNameChange(i, value),
                         decoration: const InputDecoration(
                           filled: true,
@@ -293,7 +301,7 @@ class TeamsSetState extends State<TeamsSet> {
             Padding(
               padding: const EdgeInsets.all(20.0),
               child: ElevatedButton(
-                onPressed: saveTeams, // Ensure this references the correct method
+                onPressed: saveTeams,
                 child: const Text(
                   'Save Teams',
                   style: TextStyle(fontSize: 20),

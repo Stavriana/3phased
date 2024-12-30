@@ -1,14 +1,14 @@
-import 'dart:developer';
+//import 'dart:developer';
 
 class Game {
-  final String? id; // 4-digit code
+  final String? id; // Room code
   final int numofteams;
   final int numofplayers;
   final int numofwords;
   final int t1;
   final int t2;
   final int t3;
-  final Map<String, Team> ourteams; // Optional field to store team information
+  final Map<String, Team> ourteams;
 
   Game({
     this.id,
@@ -23,7 +23,6 @@ class Game {
 
   // Convert to Firestore format
   Map<String, dynamic> toJson() {
-    log('Converting Game to JSON: $this', name: 'GameModel');
     return {
       "id": id,
       "numofteams": numofteams,
@@ -38,10 +37,9 @@ class Game {
 
   // Create a Game object from Firestore data
   factory Game.fromFirestore(String id, Map<String, dynamic> data) {
-    log('Converting Firestore Data to Game: $data', name: 'GameModel');
     return Game(
       id: id,
-      numofteams: data["numofteams"] ?? 0,
+      numofteams: data["numofteams"] ?? 0, // Default to 0 if null
       numofplayers: data["numofplayers"] ?? 0,
       numofwords: data["numofwords"] ?? 0,
       t1: data["t1"] ?? 0,
@@ -49,15 +47,9 @@ class Game {
       t3: data["t3"] ?? 0,
       ourteams: (data["ourteams"] as Map<String, dynamic>?)?.map(
             (key, value) => MapEntry(key, Team.fromJson(value)),
-          ) ?? {},
+          ) ??
+          {}, // Default to empty map if null
     );
-  }
-
-  // Method to update points for a team
-  void updatePoints(String teamId, int points) {
-    if (ourteams.containsKey(teamId)) {
-      ourteams[teamId]?.points = points;
-    }
   }
 }
 
@@ -65,36 +57,35 @@ class Team {
   String name;
   String color;
   List<Player> players;
-  int points;  // Points field with default value
+  int points;
 
   Team({
     required this.name,
-    this.color = "", // Default empty string
-    this.players = const [], // Default empty list
-    this.points = 0, // Default value is 0 for points
+    this.color = "", // Default to empty string
+    this.players = const [], // Default to an empty list
+    this.points = 0, // Default to 0
   });
 
   // Convert to Firestore format
   Map<String, dynamic> toJson() {
-    log('Converting Team to JSON: $this', name: 'TeamModel');
     return {
       "name": name,
       "color": color,
       "players": players.map((player) => player.toJson()).toList(),
-      "points": points,  // Save points to Firestore
+      "points": points,
     };
   }
 
   // Create a Team object from Firestore data
   factory Team.fromJson(Map<String, dynamic> data) {
-    log('Converting Firestore Data to Team: $data', name: 'TeamModel');
     return Team(
-      name: data["name"] ?? "",
-      color: data["color"] ?? "",
+      name: data["name"] ?? "", // Default to empty string if null
+      color: data["color"] ?? "", // Default to empty string if null
       players: (data["players"] as List<dynamic>?)
               ?.map((player) => Player.fromJson(player))
-              .toList() ?? [],
-      points: data["points"] ?? 0,  // Load points from Firestore
+              .toList() ??
+          [], // Default to an empty list if players is null
+      points: data["points"] ?? 0, // Default to 0 if points is null
     );
   }
 }
@@ -110,7 +101,6 @@ class Player {
 
   // Convert to Firestore format
   Map<String, dynamic> toJson() {
-    log('Converting Player to JSON: $this', name: 'PlayerModel');
     return {
       "name": name,
       "id": id,
@@ -119,10 +109,9 @@ class Player {
 
   // Create a Player object from Firestore data
   factory Player.fromJson(Map<String, dynamic> data) {
-    log('Converting Firestore Data to Player: $data', name: 'PlayerModel');
     return Player(
-      name: data["name"] ?? "",
-      id: data["id"] ?? "",
+      name: data["name"] ?? "", // Default to empty string if null
+      id: data["id"] ?? "", // Default to empty string if null
     );
   }
 }

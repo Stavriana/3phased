@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart'; // For GetX state management
-//import 'package:eksaminiaia/controllers/code_controller.dart'; // Import CodeController
-import 'package:eksaminiaia/controllers.dart/code_controller.dart';
-import 'points_page.dart'; // Import AvatarSelectionScreen
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'set_it_up_page.dart';
+import 'points_page.dart'; // Import PointsPage for navigation
+import 'set_it_up_page.dart'; // Import SetItUpPage for room creation
 
 class CodeInputView extends StatefulWidget {
   const CodeInputView({super.key});
@@ -16,68 +14,101 @@ class CodeInputView extends StatefulWidget {
 class _CodeInputViewState extends State<CodeInputView> {
   final TextEditingController _codeController = TextEditingController();
   bool _isCodeValid = true;
-  final CodeController _codeControllerInstance = Get.put(CodeController());
 
-  // Function to check if the entered code exists in Firestore
+  /// Function to check if the entered code exists in Firestore
   Future<bool> _checkCodeExists(String code) async {
     try {
       final doc = await FirebaseFirestore.instance.collection('Rooms').doc(code).get();
       return doc.exists;
     } catch (e) {
+      debugPrint('Error checking code existence: $e');
       return false;
     }
   }
 
-  // Inside CodeInputView class
- void _joinGame(BuildContext context) async {
-  final enteredCode = _codeController.text.trim().toUpperCase();
+  /// Function to fetch room data from Firestore
+  Future<Map<String, dynamic>?> _fetchRoomData(String roomCode) async {
+    try {
+      final docSnapshot = await FirebaseFirestore.instance.collection('Rooms').doc(roomCode).get();
 
-  // Ensure entered code is not empty or null
-  if (enteredCode.isEmpty) {
-    Get.snackbar(
-      'Error',
-      'Please enter a valid room code.',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Colors.red,
-      colorText: Colors.white,
-    );
-    return;
+      if (!docSnapshot.exists) {
+        debugPrint('Room not found for code: $roomCode');
+        return null;
+      }
+
+      final data = docSnapshot.data();
+      debugPrint('Room data: $data'); // Log the raw data for debugging
+      return data;
+    } catch (e) {
+      debugPrint('Error fetching room data: $e');
+      return null;
+    }
   }
 
-  // Check if the entered code exists in Firestore
-  final codeExists = await _checkCodeExists(enteredCode);
+  /// Function to join a game room
+  void _joinGame(BuildContext context) async {
+    final enteredCode = _codeController.text.trim().toUpperCase();
 
-  if (!mounted) return;
+    if (enteredCode.isEmpty) {
+      Get.snackbar(
+        'Error',
+        'Please enter a valid room code.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+      return;
+    }
 
-  if (codeExists) {
-    // Pass enteredCode to AvatarSelectionScreen
-    Get.to(() => AvatarSelectionScreen(code: enteredCode)); // Passing 'code' to AvatarSelectionScreen
-  } else {
-    // Show error message if the code does not exist
-    Get.snackbar(
-      'Error',
-      'The room code is invalid or does not exist.',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Colors.red,
-      colorText: Colors.white,
-    );
+    // Check if the room code exists
+    final codeExists = await _checkCodeExists(enteredCode);
+
+    if (!mounted) return;
+
+    if (codeExists) {
+      // Fetch room data before navigating
+      final roomData = await _fetchRoomData(enteredCode);
+
+      if (roomData != null) {
+        // Navigate to PointsPage with the room code
+        Get.to(() => PointsPage(roomCode: enteredCode));
+      } else {
+        Get.snackbar(
+          'Error',
+          'Failed to load room data.',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+      }
+    } else {
+      Get.snackbar(
+        'Error',
+        'The room code is invalid or does not exist.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    }
   }
- }
 
-
-  // Function to create a new room and navigate to the setup page
+  /// Function to create a new room
   void _createRoom(BuildContext context) async {
     try {
-      final String roomCode = await _codeControllerInstance.createRoom(); // Create a new room code
+      // Generate a random 4-character room code
+      final roomCode = _generateRandomRoomCode();
 
-      // Ensure the widget is still mounted before using the BuildContext
+      // Add the room to Firestore
+      await FirebaseFirestore.instance.collection('Rooms').doc(roomCode).set({
+        'ourteams': {}, // Initialize with an empty 'ourteams' field
+      });
+
       if (!mounted) return;
 
-      // Use Get.to() for navigation
-      Get.to(() => SetItUpPage(roomCode: roomCode)); // Navigate to setup page with room code
+      // Navigate to SetItUpPage with the room code
+      Get.to(() => SetItUpPage(roomCode: roomCode));
     } catch (e) {
-      // Ensure the widget is still mounted before using the BuildContext
-      if (!mounted) return;
+      debugPrint('Error creating room: $e');
 
       Get.snackbar(
         'Error',
@@ -87,6 +118,16 @@ class _CodeInputViewState extends State<CodeInputView> {
         colorText: Colors.white,
       );
     }
+  }
+
+  /// Function to generate a random 4-character room code
+  String _generateRandomRoomCode() {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    return String.fromCharCodes(
+      Iterable.generate(4, (_) => characters.codeUnitAt(
+        DateTime.now().millisecondsSinceEpoch % characters.length,
+      )),
+    );
   }
 
   @override
@@ -177,7 +218,7 @@ class _CodeInputViewState extends State<CodeInputView> {
             Center(
               child: GestureDetector(
                 onTap: () => _createRoom(context), // Create room functionality
-                child: const CreateRoomButton(), // Button to create a room
+                child: const CreateRoomButton(),
               ),
             ),
           ],
@@ -187,7 +228,7 @@ class _CodeInputViewState extends State<CodeInputView> {
   }
 }
 
-// CreateRoomButton widget for the "Create Room" button
+/// CreateRoomButton widget for the "Create Room" button
 class CreateRoomButton extends StatelessWidget {
   const CreateRoomButton({super.key});
 
