@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart'; // For GetX state management
 //import 'package:eksaminiaia/controllers/code_controller.dart'; // Import CodeController
 import 'package:eksaminiaia/controllers.dart/code_controller.dart';
-import 'avatar_setup.dart'; // Import AvatarSelectionScreen
+import 'points_page.dart'; // Import AvatarSelectionScreen
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'set_it_up_page.dart';
 
@@ -28,30 +28,42 @@ class _CodeInputViewState extends State<CodeInputView> {
     }
   }
 
-  // Function to handle joining the game
-  void _joinGame(BuildContext context) async {
-    final enteredCode = _codeController.text.trim().toUpperCase();
+  // Inside CodeInputView class
+ void _joinGame(BuildContext context) async {
+  final enteredCode = _codeController.text.trim().toUpperCase();
 
-    // Check if the entered code exists in Firestore
-    final codeExists = await _checkCodeExists(enteredCode);
-
-    // Ensure the widget is still mounted before using the BuildContext
-    if (!mounted) return;
-
-    if (codeExists) {
-      // Navigate to AvatarSelectionScreen if the code exists
-      Get.to(() => AvatarSelectionScreen(code: enteredCode)); // Use Get.to() for navigation
-    } else {
-      // Show error message if the code does not exist
-      Get.snackbar(
-        'Error',
-        'The room code is invalid or does not exist.',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
-    }
+  // Ensure entered code is not empty or null
+  if (enteredCode.isEmpty) {
+    Get.snackbar(
+      'Error',
+      'Please enter a valid room code.',
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: Colors.red,
+      colorText: Colors.white,
+    );
+    return;
   }
+
+  // Check if the entered code exists in Firestore
+  final codeExists = await _checkCodeExists(enteredCode);
+
+  if (!mounted) return;
+
+  if (codeExists) {
+    // Pass enteredCode to AvatarSelectionScreen
+    Get.to(() => AvatarSelectionScreen(code: enteredCode)); // Passing 'code' to AvatarSelectionScreen
+  } else {
+    // Show error message if the code does not exist
+    Get.snackbar(
+      'Error',
+      'The room code is invalid or does not exist.',
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: Colors.red,
+      colorText: Colors.white,
+    );
+  }
+ }
+
 
   // Function to create a new room and navigate to the setup page
   void _createRoom(BuildContext context) async {

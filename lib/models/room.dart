@@ -10,7 +10,7 @@ class Game {
   final int t3;
   final Map<String, Team> ourteams; // Optional field to store team information
 
-  const Game({
+  Game({
     this.id,
     required this.numofteams,
     required this.numofplayers,
@@ -49,21 +49,29 @@ class Game {
       t3: data["t3"] ?? 0,
       ourteams: (data["ourteams"] as Map<String, dynamic>?)?.map(
             (key, value) => MapEntry(key, Team.fromJson(value)),
-          ) ??
-          {},
+          ) ?? {},
     );
+  }
+
+  // Method to update points for a team
+  void updatePoints(String teamId, int points) {
+    if (ourteams.containsKey(teamId)) {
+      ourteams[teamId]?.points = points;
+    }
   }
 }
 
 class Team {
-  final String name;
-  final String color;
-  final List<Player> players;
+  String name;
+  String color;
+  List<Player> players;
+  int points;  // Points field with default value
 
-  const Team({
+  Team({
     required this.name,
     this.color = "", // Default empty string
     this.players = const [], // Default empty list
+    this.points = 0, // Default value is 0 for points
   });
 
   // Convert to Firestore format
@@ -73,6 +81,7 @@ class Team {
       "name": name,
       "color": color,
       "players": players.map((player) => player.toJson()).toList(),
+      "points": points,  // Save points to Firestore
     };
   }
 
@@ -84,17 +93,17 @@ class Team {
       color: data["color"] ?? "",
       players: (data["players"] as List<dynamic>?)
               ?.map((player) => Player.fromJson(player))
-              .toList() ??
-          [],
+              .toList() ?? [],
+      points: data["points"] ?? 0,  // Load points from Firestore
     );
   }
 }
 
 class Player {
-  final String name;
-  final String id;
+  String name;
+  String id;
 
-  const Player({
+  Player({
     required this.name,
     required this.id,
   });
