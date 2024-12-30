@@ -26,6 +26,7 @@ class UpdateRoomController extends GetxController {
     required int t1,
     required int t2,
     required int t3,
+    
   }) async {
     try {
       final game = Game(
@@ -36,6 +37,7 @@ class UpdateRoomController extends GetxController {
         t1: t1,
         t2: t2,
         t3: t3,
+        ourteams: {},
       );
       await repository.saveRoom(game);
     } catch (e) {
@@ -52,6 +54,7 @@ class UpdateRoomController extends GetxController {
     required int t1,
     required int t2,
     required int t3,
+    //required Map ourteams,
   }) async {
     try {
       final game = Game(
@@ -62,6 +65,7 @@ class UpdateRoomController extends GetxController {
         t1: t1,
         t2: t2,
         t3: t3,
+        
       );
       await repository.updateRoom(game);
     } catch (e) {

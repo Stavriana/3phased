@@ -26,28 +26,29 @@ class _CustomCounterWidgetState extends State<CustomCounterWidget> {
   @override
   void initState() {
     super.initState();
-    if (widget.initialValue < widget.minValue || widget.initialValue > widget.maxValue) {
-      throw ArgumentError('Initial value must be between minValue and maxValue');
-    }
+    assert(
+      widget.initialValue >= widget.minValue && widget.initialValue <= widget.maxValue,
+      'Initial value must be between minValue and maxValue',
+    );
     counter = widget.initialValue;
   }
 
   void _decreaseCounter() {
-    setState(() {
-      if (counter > widget.minValue) {
+    if (counter > widget.minValue) {
+      setState(() {
         counter--;
-        widget.onValueChanged(counter);
-      }
-    });
+      });
+      widget.onValueChanged(counter);
+    }
   }
 
   void _increaseCounter() {
-    setState(() {
-      if (counter < widget.maxValue) {
+    if (counter < widget.maxValue) {
+      setState(() {
         counter++;
-        widget.onValueChanged(counter);
-      }
-    });
+      });
+      widget.onValueChanged(counter);
+    }
   }
 
   @override
@@ -75,39 +76,24 @@ class _CustomCounterWidgetState extends State<CustomCounterWidget> {
           ),
           Row(
             children: [
-              Semantics(
-                label: 'Decrease Counter',
-                button: true,
-                child: GestureDetector(
-                  onTap: _decreaseCounter,
-                  child: const Icon(Icons.remove, size: 28, color: Colors.purple),
-                ),
+              IconButton(
+                onPressed: _decreaseCounter,
+                icon: const Icon(Icons.remove, size: 28, color: Colors.purple),
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 200),
-                  transitionBuilder: (child, animation) {
-                    return ScaleTransition(scale: animation, child: child);
-                  },
-                  child: Text(
-                    '$counter',
-                    key: ValueKey<int>(counter),
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
+                child: Text(
+                  '$counter',
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
                   ),
                 ),
               ),
-              Semantics(
-                label: 'Increase Counter',
-                button: true,
-                child: GestureDetector(
-                  onTap: _increaseCounter,
-                  child: const Icon(Icons.add, size: 28, color: Colors.purple),
-                ),
+              IconButton(
+                onPressed: _increaseCounter,
+                icon: const Icon(Icons.add, size: 28, color: Colors.purple),
               ),
             ],
           ),

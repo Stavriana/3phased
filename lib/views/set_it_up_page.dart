@@ -4,8 +4,8 @@ import 'package:eksaminiaia/controllers.dart/updateroom_controller.dart';
 import 'package:eksaminiaia/repositories/updateroom_repository.dart';
 import 'package:eksaminiaia/widgets/custom_counter_widget.dart';
 import 'package:eksaminiaia/widgets/custom_slider_widget.dart';
-import 'package:eksaminiaia/views/teams_setup.dart'; // Ensure this import is correct
-
+//import 'package:eksaminiaia/views/teams_setup.dart'; // Ensure this import is correct
+import 'teams_setup.dart';
 class SetItUpPage extends StatelessWidget {
   final String roomCode;
 
@@ -123,7 +123,7 @@ class SetItUpPage extends StatelessWidget {
                           );
 
                           // Navigate to TeamsSetupPage
-                          Get.to(() => TeamsSetupPage(roomCode: roomCode));
+                          Get.to(() => TeamsSet(roomCode: roomCode));
 
                           Get.snackbar(
                             'Success',
