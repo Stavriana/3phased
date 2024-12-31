@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'dart:developer';
 import 'package:eksaminiaia/models/room.dart';
 import 'package:eksaminiaia/widgets/points_display.dart';
+import 'package:eksaminiaia/views/code_input_view.dart'; // Import CodeInputView
 
 class PointsPage extends StatefulWidget {
   final String roomCode;
@@ -52,10 +53,6 @@ class PointsPageState extends State<PointsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Points Page'),
-        backgroundColor: Colors.red,
-      ),
       body: FutureBuilder<Game?>(
         future: gameData,
         builder: (context, snapshot) {
@@ -98,48 +95,78 @@ class PointsPageState extends State<PointsPage> {
           List<MapEntry<String, Team>> sortedTeams = teams.entries.toList()
             ..sort((a, b) => b.value.points.compareTo(a.value.points));
 
-          return Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'SCOREBOARD',
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
+          return Stack(
+            children: [
+              Column(
+                children: [
+                  // Header with score title
+                  Container(
                     color: Colors.red,
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(20.0),
+                    child: Center(
+                      child: Text(
+                        'SCORE',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-                SizedBox(height: 20),
-                // Make the list of teams scrollable
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: sortedTeams.length,
-                    itemBuilder: (context, index) {
-                      String teamKey = sortedTeams[index].key;
-                      Team team = sortedTeams[index].value;
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 16.0),
-                        child: ScoreBox(team: team),
-                      );
-                    },
+                  const SizedBox(height: 16), // Spacing below the header
+                  // Team score display
+                  Expanded(
+                    child: ListView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      itemCount: sortedTeams.length,
+                      itemBuilder: (context, index) {
+                        Team team = sortedTeams[index].value;
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: ScoreBox(team: team),
+                        );
+                      },
+                    ),
                   ),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context); // Replace with your next navigation
+                  // NEXT Button
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context); // Replace with your next navigation
+                      },
+                      style: ElevatedButton.styleFrom(
+                        foregroundColor: Colors.white,
+                        backgroundColor: Colors.purple,
+                        padding: EdgeInsets.symmetric(horizontal: 50, vertical: 20),
+                        textStyle: TextStyle(fontSize: 20),
+                      ),
+                      child: Text('NEXT'),
+                    ),
+                  ),
+                ],
+              ),
+              // Bottom-left house icon button
+              Positioned(
+                bottom: 16,
+                left: 16,
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => CodeInputView()),
+                    );
                   },
-                  style: ElevatedButton.styleFrom(
-                    foregroundColor: Colors.white,
-                    backgroundColor: Colors.purple,
-                    padding: EdgeInsets.symmetric(horizontal: 50, vertical: 20),
-                    textStyle: TextStyle(fontSize: 20),
+                  child: Image.asset(
+                    'assets/images/house.png',
+                    width: 40,
+                    height: 40,
                   ),
-                  child: Text('NEXT'),
                 ),
-              ],
-            ),
+              ),
+            ],
           );
         },
       ),

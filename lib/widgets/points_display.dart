@@ -28,8 +28,8 @@ class ScoreBox extends StatelessWidget {
           width: boxWidth, // Dynamically adjust width based on points
           decoration: BoxDecoration(
             color: _parseColor(team.color), // Use parsed color
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: Colors.black, width: 2),
+            borderRadius: BorderRadius.circular(0),
+            //border: Border.all(color: Colors.black, width: 2),
           ),
           padding: const EdgeInsets.all(16),
           child: Text(
