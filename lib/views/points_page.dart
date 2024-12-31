@@ -4,7 +4,7 @@ import 'dart:developer';
 import 'package:eksaminiaia/models/room.dart';
 import 'package:eksaminiaia/widgets/points_display.dart';
 import 'package:eksaminiaia/views/code_input_view.dart'; // Import CodeInputView
-
+import 'package:eksaminiaia/views/final.dart';
 class PointsPage extends StatefulWidget {
   final String roomCode;
 
@@ -135,8 +135,15 @@ class PointsPageState extends State<PointsPage> {
                     padding: const EdgeInsets.all(16.0),
                     child: ElevatedButton(
                       onPressed: () {
-                        Navigator.pop(context); // Replace with your next navigation
-                      },
+  // Navigate to ScoreboardApp and pass the roomCode
+                       Navigator.push(
+                         context,
+                         MaterialPageRoute(
+                         builder: (context) => ScoreboardScreen(roomCode:widget.roomCode),
+                         ),
+                        );
+                       },
+
                       style: ElevatedButton.styleFrom(
                         foregroundColor: Colors.white,
                         backgroundColor: Colors.purple,
@@ -172,4 +179,4 @@ class PointsPageState extends State<PointsPage> {
       ),
     );
   }
-}
+} 

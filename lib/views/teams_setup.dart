@@ -23,10 +23,10 @@ class TeamsSetState extends State<TeamsSet> {
     UpdateRoomController(repository: UpdateRoomRepository()),
   );
 
-  final Map<int, String> teamNames = {}; // Store team names dynamically
-  final Map<int, Color> teamColors = {}; // Store team colors dynamically
-  final Set<Color> selectedColors = {}; // Track selected colors
-  final Map<int, TextEditingController> nameControllers = {}; // Controllers for team names
+  final Map<int, String> teamNames = {};
+  final Map<int, Color> teamColors = {};
+  final Set<Color> selectedColors = {};
+  final Map<int, TextEditingController> nameControllers = {};
 
   @override
   void initState() {
@@ -36,14 +36,12 @@ class TeamsSetState extends State<TeamsSet> {
 
   @override
   void dispose() {
-    // Dispose of all TextEditingControllers
     for (final controller in nameControllers.values) {
       controller.dispose();
     }
     super.dispose();
   }
 
-  // Fetch game details and populate local data
   void fetchGameDetails() {
     Future.delayed(Duration.zero, () {
       setState(() {
@@ -59,7 +57,7 @@ class TeamsSetState extends State<TeamsSet> {
           teamNames[i] = name;
           nameControllers[i] = TextEditingController(text: name);
 
-          final color = _hexToColor(team?.color ?? "#FFFFFF"); // Parse #RRGGBB back to Color
+          final color = _hexToColor(team?.color ?? "#FFFFFF");
           teamColors[i] = color;
           if (color != const Color(0xFFFFFFFF)) {
             selectedColors.add(color);
@@ -74,7 +72,6 @@ class TeamsSetState extends State<TeamsSet> {
     });
   }
 
-  // Update team name in both local and controller data
   void handleNameChange(int teamNumber, String name) {
     setState(() {
       teamNames[teamNumber] = name;
@@ -90,7 +87,6 @@ class TeamsSetState extends State<TeamsSet> {
     });
   }
 
-  // Update team color in both local and controller data
   void handleColorChange(int teamNumber, Color color) {
     setState(() {
       final previousColor = teamColors[teamNumber];
@@ -107,23 +103,22 @@ class TeamsSetState extends State<TeamsSet> {
           Team(name: "", color: "#FFFFFF", players: []);
       _updateRoomController.ourteams[teamKey] = Team(
         name: existingTeam.name,
-        color: _colorToHex(color), // Use _colorToHex here
+        color: _colorToHex(color),
         players: existingTeam.players,
       );
     });
   }
 
-  // Save teams data to Firestore
   Future<void> saveTeams() async {
     try {
       final updatedTeams = <String, Map<String, dynamic>>{};
       teamNames.forEach((teamNumber, name) {
         final teamKey = "Team $teamNumber";
-        final colorHex = _colorToHex(teamColors[teamNumber] ?? const Color(0xFFFFFFFF)); // Convert to #RRGGBB format
+        final colorHex = _colorToHex(teamColors[teamNumber] ?? const Color(0xFFFFFFFF));
 
         updatedTeams[teamKey] = {
           "name": name,
-          "color": colorHex, // Save color in #RRGGBB format
+          "color": colorHex,
           "points": _updateRoomController.ourteams[teamKey]?.points ?? 0,
           "players": _updateRoomController.ourteams[teamKey]?.players
                   .map((player) => player.toJson())
@@ -134,11 +129,7 @@ class TeamsSetState extends State<TeamsSet> {
 
       log('Saving Teams: $updatedTeams', name: 'TeamsSet');
 
-      // Save the updated data to Firestore
-      await FirebaseFirestore.instance
-          .collection('Rooms')
-          .doc(widget.roomCode)
-          .update({
+      await FirebaseFirestore.instance.collection('Rooms').doc(widget.roomCode).update({
         "numofteams": _updateRoomController.numOfTeams.value,
         "numofplayers": _updateRoomController.numOfPlayers.value,
         "numofwords": _updateRoomController.numOfWords.value,
@@ -155,14 +146,12 @@ class TeamsSetState extends State<TeamsSet> {
     }
   }
 
-  // Convert Color to Hex String
   String _colorToHex(Color color) {
     return '#${color.red.toRadixString(16).padLeft(2, '0').toUpperCase()}'
-           '${color.green.toRadixString(16).padLeft(2, '0').toUpperCase()}'
-           '${color.blue.toRadixString(16).padLeft(2, '0').toUpperCase()}';
+        '${color.green.toRadixString(16).padLeft(2, '0').toUpperCase()}'
+        '${color.blue.toRadixString(16).padLeft(2, '0').toUpperCase()}';
   }
 
-  // Convert Hex String to Color
   Color _hexToColor(String hex) {
     return Color(int.parse(hex.replaceFirst('#', '0xFF')));
   }
@@ -253,46 +242,47 @@ class TeamsSetState extends State<TeamsSet> {
                         ),
                       ),
                     ),
-                    Row(
-                      children: [
-                        for (Color color in [
-                          Colors.pink,
-                          Colors.yellow,
-                          Colors.blue,
-                          Colors.orange,
-                          Colors.green,
-                          Colors.red
-                        ])
-                          GestureDetector(
-                            onTap: () {
-                              if (!isColorTaken(color) ||
-                                  teamColors[i] == color) {
-                                handleColorChange(i, color);
-                              }
-                            },
-                            child: Container(
-                              margin: const EdgeInsets.symmetric(horizontal: 5),
-                              width: 50,
-                              height: 50,
-                              decoration: BoxDecoration(
-                                color: color,
-                                shape: BoxShape.circle,
-                                border: teamColors[i] == color
-                                    ? Border.all(width: 4, color: Colors.black)
-                                    : null,
-                                boxShadow: isColorTaken(color) &&
-                                        teamColors[i] != color
-                                    ? [
-                                        const BoxShadow(
-                                          color: Colors.grey,
-                                          blurRadius: 2,
-                                        )
-                                      ]
-                                    : null,
+                    Expanded(
+                      child: Wrap(
+                        spacing: 10,
+                        runSpacing: 10,
+                        children: [
+                          for (Color color in [
+                            Colors.pink,
+                            Colors.yellow,
+                            Colors.blue,
+                            Colors.orange,
+                            Colors.green,
+                            Colors.red
+                          ])
+                            GestureDetector(
+                              onTap: () {
+                                if (!isColorTaken(color) || teamColors[i] == color) {
+                                  handleColorChange(i, color);
+                                }
+                              },
+                              child: Container(
+                                width: 50,
+                                height: 50,
+                                decoration: BoxDecoration(
+                                  color: color,
+                                  shape: BoxShape.circle,
+                                  border: teamColors[i] == color
+                                      ? Border.all(width: 4, color: Colors.black)
+                                      : null,
+                                  boxShadow: isColorTaken(color) && teamColors[i] != color
+                                      ? [
+                                          const BoxShadow(
+                                            color: Colors.grey,
+                                            blurRadius: 2,
+                                          )
+                                        ]
+                                      : null,
+                                ),
                               ),
                             ),
-                          ),
-                      ],
+                        ],
+                      ),
                     ),
                   ],
                 ),

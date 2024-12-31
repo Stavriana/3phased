@@ -30,22 +30,17 @@ android {
     }
 
     buildTypes {
-    release {
-        // If you want to shrink resources, enable code shrinking
-        minifyEnabled true
-        shrinkResources true
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
 
-        // Use the default ProGuard rules
-        proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        debug {
+            minifyEnabled false
+            shrinkResources false
+        }
     }
-
-    debug {
-        // Ensure debug builds do not attempt to shrink resources
-        minifyEnabled false
-        shrinkResources false
-    }
-}
-
 }
 
 flutter {
@@ -53,14 +48,8 @@ flutter {
 }
 
 dependencies {
-    //classpath 'com.google.gms:google-services:4.3.15' // Latest version
-    classpath 'com.google.gms:google-services:4.3.15'
     implementation platform('com.google.firebase:firebase-bom:32.0.0') // Firebase BOM
-    implementation 'com.google.firebase:firebase-analytics-ktx' // Firebase Analytics
-    implementation "androidx.core:core-ktx:1.10.1" // AndroidX core
-    implementation "androidx.multidex:multidex:2.0.1" // Enable MultiDex
+    implementation 'com.google.firebase:firebase-analytics-ktx'       // Firebase Analytics
+    implementation "androidx.core:core-ktx:1.10.1"                     // AndroidX Core
+    implementation "androidx.multidex:multidex:2.0.1"                  // Enable MultiDex
 }
-
-//apply plugin: 'com.google.gms.google-services'
-apply plugin: "com.google.gms.google-services"
-classpath("com.google.gms:google-services:4.3.15")
