@@ -1,24 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:eksaminiaia/models/room.dart';
 
-
 class TeamCard extends StatelessWidget {
-  final Team team; // Pass the Team object directly
-  final String trophyImage;
+  final Team team; // Team object
+  final String trophyImage; // Trophy image
+  final double width; // Width of the box
+  final double height; // Height of the box
+  final Color backgroundColor; // Background color of the box
 
   const TeamCard({
     super.key,
     required this.team,
     required this.trophyImage,
+    this.width = double.infinity,
+    this.height = 100,
+    this.backgroundColor = Colors.purple,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
+      width: width,
+      height: height,
       margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
       padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
       decoration: BoxDecoration(
-        color: Colors.purple,
+        color: backgroundColor,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(

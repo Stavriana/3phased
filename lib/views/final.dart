@@ -21,32 +21,31 @@ class ScoreboardScreen extends StatelessWidget {
       ..sort((a, b) => b.points.compareTo(a.points));
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Scoreboard'),
-        centerTitle: true,
-      ),
+      
       body: SingleChildScrollView(
         child: Column(
           children: [
             const SizedBox(height: 20),
             // Title and Room Code
-            const Text(
-              'SCOREBOARD',
-              style: TextStyle(
-                fontSize: 36,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
-              textAlign: TextAlign.center,
+            Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 16.0),
+            margin: const EdgeInsets.symmetric(horizontal: 16.0), // Optional margin
+            decoration: BoxDecoration(
+            color: const Color(0xFF1CA63E), // Green color (#1CA63E)
+            borderRadius: BorderRadius.circular(8.0), // Optional rounded corners
             ),
-            const SizedBox(height: 10),
-            Text(
-              'Room Code: $roomCode',
-              style: const TextStyle(
-                fontSize: 20,
-                color: Colors.black54,
+            child: const Text(
+             'SCOREBOARD',
+             style: TextStyle(
+              fontSize: 36,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
               ),
+             textAlign: TextAlign.center,
             ),
+            ),
+            
             const SizedBox(height: 30),
             // Use TeamCard for 1st, 2nd, and 3rd places
             if (sortedTeams.isNotEmpty)
@@ -66,7 +65,7 @@ class ScoreboardScreen extends StatelessWidget {
             if (sortedTeams.length > 2)
               TeamCard(
                 team: sortedTeams[2],
-                trophyImage: 'assets/images/thirdplace.png',
+                trophyImage: 'assets/images/thridplace.png',
                 height: 100,
                 backgroundColor: Colors.orange,
               ),
