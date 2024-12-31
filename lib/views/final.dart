@@ -1,13 +1,25 @@
 import 'package:flutter/material.dart';
-//import 'package:eksaminiaia/models/room.dart';
+import 'package:eksaminiaia/models/room.dart';
+import 'package:eksaminiaia/widgets/first_place.dart';
+import 'package:eksaminiaia/widgets/last_places.dart';
+
 
 class ScoreboardScreen extends StatelessWidget {
   final String roomCode;
+  final Game game;
 
-  const ScoreboardScreen({super.key, required this.roomCode});
+  const ScoreboardScreen({
+    super.key,
+    required this.roomCode,
+    required this.game,
+  });
 
   @override
   Widget build(BuildContext context) {
+    // Sort teams by points in descending order
+    final sortedTeams = game.ourteams.values.toList()
+      ..sort((a, b) => b.points.compareTo(a.points));
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Scoreboard'),
@@ -16,165 +28,90 @@ class ScoreboardScreen extends StatelessWidget {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            const SizedBox(height: 50),
-            Center(
-              child: Column(
-                children: [
-                  const Text(
-                    'SCOREBOARD',
-                    style: TextStyle(
-                      fontSize: 36,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Room Code: $roomCode',
-                    style: const TextStyle(
-                      fontSize: 20,
-                      color: Colors.white70,
-                    ),
-                  ),
-                ],
+            const SizedBox(height: 20),
+            // Title and Room Code
+            const Text(
+              'SCOREBOARD',
+              style: TextStyle(
+                fontSize: 36,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'Room Code: $roomCode',
+              style: const TextStyle(
+                fontSize: 20,
+                color: Colors.black54,
               ),
             ),
-            const SizedBox(height: 50),
-            ScoreCard(
-              positionImage: 'assets/images/firstplace.png',
-              teamName: 'Team Alpha',
-              points: 150,
-              color: Colors.yellow,
-            ),
-            ScoreCard(
-              positionImage: 'assets/images/secondplace.png',
-              teamName: 'Team Beta',
-              points: 120,
-              color: Colors.grey,
-            ),
-            ScoreCard(
-              positionImage: 'assets/images/thridplace.png',
-              teamName: 'Team Gamma',
-              points: 100,
-              color: Colors.orange,
-            ),
-            const SizedBox(height: 50),
+            const SizedBox(height: 30),
+            // Use TeamCard for 1st, 2nd, and 3rd places
+            if (sortedTeams.isNotEmpty)
+              TeamCard(
+                team: sortedTeams[0],
+                trophyImage: 'assets/images/firstplace.png',
+                height: 120,
+                backgroundColor: Colors.purple,
+              ),
+            if (sortedTeams.length > 1)
+              TeamCard(
+                team: sortedTeams[1],
+                trophyImage: 'assets/images/secondplace.png',
+                height: 110,
+                backgroundColor: Colors.grey,
+              ),
+            if (sortedTeams.length > 2)
+              TeamCard(
+                team: sortedTeams[2],
+                trophyImage: 'assets/images/thirdplace.png',
+                height: 100,
+                backgroundColor: Colors.orange,
+              ),
+            const SizedBox(height: 20),
+            // Use LastPlaces for 4th, 5th, and 6th places
+            if (sortedTeams.length > 3)
+              Column(
+                children: sortedTeams.sublist(3).map((team) {
+                  return LastPlaces(team: team);
+                }).toList(),
+              ),
+            const SizedBox(height: 20),
+            // New Game and Exit Buttons
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                ActionButton(
-                  text: 'New Game',
-                  color: Colors.green,
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                    backgroundColor: Colors.green,
+                  ),
                   onPressed: () {
                     // Handle new game action
                   },
+                  child: const Text(
+                    'New Game',
+                    style: TextStyle(fontSize: 18),
+                  ),
                 ),
-                ActionButton(
-                  text: 'Exit',
-                  color: Colors.red,
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                    backgroundColor: Colors.red,
+                  ),
                   onPressed: () {
-                    Navigator.pop(context); // Navigate back to the previous screen
+                    Navigator.pop(context); // Exit action
                   },
+                  child: const Text(
+                    'Exit',
+                    style: TextStyle(fontSize: 18),
+                  ),
                 ),
               ],
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class ScoreCard extends StatelessWidget {
-  final String positionImage;
-  final String teamName;
-  final int points;
-  final Color color;
-
-  const ScoreCard({
-    required this.positionImage,
-    required this.teamName,
-    required this.points,
-    required this.color,
-    super.key,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
-      child: Container(
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.8),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Image.asset(
-                positionImage,
-                width: 80,
-                height: 80,
-              ),
-            ),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    teamName,
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  Text(
-                    '$points points',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      color: Colors.white70,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class ActionButton extends StatelessWidget {
-  final String text;
-  final Color color;
-  final VoidCallback onPressed;
-
-  const ActionButton({
-    required this.text,
-    required this.color,
-    required this.onPressed,
-    super.key,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: color,
-        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-      ),
-      onPressed: onPressed,
-      child: Text(
-        text,
-        style: const TextStyle(
-          fontSize: 18,
-          color: Colors.white,
         ),
       ),
     );

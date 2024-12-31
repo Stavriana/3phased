@@ -213,20 +213,6 @@ class TeamsSetState extends State<TeamsSet> {
                   ],
                 ),
               ),
-            ],
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20.0),
-              child: Text(
-                'TEAM COLOR:',
-                style: TextStyle(
-                  fontSize: 35,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-              ),
-            ),
-            const SizedBox(height: 10),
-            for (int i = 1; i <= _updateRoomController.numOfTeams.value; i++) ...[
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10),
                 child: Row(
@@ -243,45 +229,47 @@ class TeamsSetState extends State<TeamsSet> {
                       ),
                     ),
                     Expanded(
-                      child: Wrap(
-                        spacing: 10,
-                        runSpacing: 10,
-                        children: [
-                          for (Color color in [
-                            Colors.pink,
-                            Colors.yellow,
-                            Colors.blue,
-                            Colors.orange,
-                            Colors.green,
-                            Colors.red
-                          ])
-                            GestureDetector(
-                              onTap: () {
-                                if (!isColorTaken(color) || teamColors[i] == color) {
-                                  handleColorChange(i, color);
-                                }
-                              },
-                              child: Container(
-                                width: 50,
-                                height: 50,
-                                decoration: BoxDecoration(
-                                  color: color,
-                                  shape: BoxShape.circle,
-                                  border: teamColors[i] == color
-                                      ? Border.all(width: 4, color: Colors.black)
-                                      : null,
-                                  boxShadow: isColorTaken(color) && teamColors[i] != color
-                                      ? [
-                                          const BoxShadow(
-                                            color: Colors.grey,
-                                            blurRadius: 2,
-                                          )
-                                        ]
-                                      : null,
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            for (Color color in [
+                              Colors.pink,
+                              Colors.yellow,
+                              Colors.blue,
+                              Colors.orange,
+                              Colors.green,
+                              Colors.red
+                            ])
+                              GestureDetector(
+                                onTap: () {
+                                  if (!isColorTaken(color) || teamColors[i] == color) {
+                                    handleColorChange(i, color);
+                                  }
+                                },
+                                child: Container(
+                                  margin: const EdgeInsets.symmetric(horizontal: 5),
+                                  width: 35,
+                                  height: 35,
+                                  decoration: BoxDecoration(
+                                    color: color,
+                                    shape: BoxShape.circle,
+                                    border: teamColors[i] == color
+                                        ? Border.all(width: 3, color: Colors.black)
+                                        : null,
+                                    boxShadow: isColorTaken(color) && teamColors[i] != color
+                                        ? [
+                                            const BoxShadow(
+                                              color: Colors.grey,
+                                              blurRadius: 2,
+                                            )
+                                          ]
+                                        : null,
+                                  ),
                                 ),
                               ),
-                            ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ],
