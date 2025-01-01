@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart'; // For GetX state management
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'points_page.dart'; // Import PointsPage for navigation
+import 'package:eksaminiaia/views/avatar_setup.dart';
 import 'set_it_up_page.dart'; // Import SetItUpPage for room creation
 
 class CodeInputView extends StatefulWidget {
@@ -71,7 +71,7 @@ class _CodeInputViewState extends State<CodeInputView> {
 
       if (roomData != null) {
         // Navigate to PointsPage with the room code
-        Get.to(() => PointsPage(roomCode: enteredCode));
+        Get.to(() => AvatarSelectionScreen(roomCode: enteredCode));
       } else {
         Get.snackbar(
           'Error',
@@ -93,32 +93,34 @@ class _CodeInputViewState extends State<CodeInputView> {
   }
 
   /// Function to create a new room
-  void _createRoom(BuildContext context) async {
-    try {
-      // Generate a random 4-character room code
-      final roomCode = _generateRandomRoomCode();
+void _createRoom(BuildContext context) async {
+  try {
+    // Generate a random 4-character room code
+    final roomCode = _generateRandomRoomCode();
 
-      // Add the room to Firestore
-      await FirebaseFirestore.instance.collection('Rooms').doc(roomCode).set({
-        'ourteams': {}, // Initialize with an empty 'ourteams' field
-      });
+    // Add the room to Firestore with default fields
+    await FirebaseFirestore.instance.collection('Rooms').doc(roomCode).set({
+      'ourteams': {}, // Initialize with an empty 'ourteams' field
+      'words': [], // Initialize with an empty array for words
+      'numofwords': 5, // Example: default number of words per player
+    });
 
-      if (!mounted) return;
+    if (!mounted) return;
 
-      // Navigate to SetItUpPage with the room code
-      Get.to(() => SetItUpPage(roomCode: roomCode));
-    } catch (e) {
-      debugPrint('Error creating room: $e');
+    // Navigate to SetItUpPage with the room code
+    Get.to(() => SetItUpPage(roomCode: roomCode));
+  } catch (e) {
+    debugPrint('Error creating room: $e');
 
-      Get.snackbar(
-        'Error',
-        'Failed to create room. Please try again later.',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
-    }
+    Get.snackbar(
+      'Error',
+      'Failed to create room. Please try again later.',
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: Colors.red,
+      colorText: Colors.white,
+    );
   }
+}
 
   /// Function to generate a random 4-character room code
   String _generateRandomRoomCode() {

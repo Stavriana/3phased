@@ -71,6 +71,11 @@ flutter:
    - assets/images/firstplace.png
    - assets/images/secondplace.png
    - assets/images/thridplace.png
+   - assets/images/ready_arrow.png
+   - assets/images/boom.png
+   - assets/images/done.png
+   - assets/images/stop.png
+   - assets/images/hourglass.png
 
   #   - images/a_dot_ham.jpeg
 

@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:logger/logger.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'team_words.dart';
 
 class AvatarSelectionScreen extends StatefulWidget {
-  const AvatarSelectionScreen({super.key});  // Use super.key for the constructor
+  final String roomCode; // Room code passed from CodeInputView
+
+  const AvatarSelectionScreen({super.key, required this.roomCode});
 
   @override
   AvatarSelectionScreenState createState() => AvatarSelectionScreenState();
@@ -15,59 +17,43 @@ class AvatarSelectionScreen extends StatefulWidget {
 class AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
   String? selectedAvatarUrl;
   final TextEditingController nameController = TextEditingController();
-  final Logger logger = Logger();
 
-  // Function to pick an image using the camera and upload to Firebase Storage
+  /// Function to pick an image and upload to Firebase Storage
   Future<void> _takePhotoAndUpload() async {
-    // Open the camera and pick an image
-    final ImagePicker picker = ImagePicker();
+    final picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.camera);
 
-    if (image == null) {
-      // If no image was picked, exit
-      return;
-    }
-
-    // Get the file from the picked image
-    File file = File(image.path);
+    if (image == null) return;
 
     try {
-      // Upload the image to Firebase Storage
-      String fileName = 'avatars/${DateTime.now().millisecondsSinceEpoch}.jpg';
-      UploadTask uploadTask = FirebaseStorage.instance.ref(fileName).putFile(file);
+      final file = File(image.path);
+      final String fileName = 'avatars/${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final uploadTask = FirebaseStorage.instance.ref(fileName).putFile(file);
 
-      TaskSnapshot snapshot = await uploadTask;
-      String downloadUrl = await snapshot.ref.getDownloadURL();  // Get the URL of the uploaded image
+      final snapshot = await uploadTask;
+      final downloadUrl = await snapshot.ref.getDownloadURL();
 
-      // Once uploaded, save the URL to Firestore
-      await FirebaseFirestore.instance.collection('avatars').add({
-        'url': downloadUrl, // Save the URL of the image in Firestore
-      });
+      if (!mounted) return;
 
-      // Save the URL to the selectedAvatarUrl variable
       setState(() {
         selectedAvatarUrl = downloadUrl;
       });
 
-      // Check if the widget is still mounted before showing the SnackBar
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Photo taken and uploaded successfully')),
+          const SnackBar(content: Text('Photo uploaded successfully')),
         );
       }
     } catch (e) {
-      logger.e('Error uploading photo: $e');
-      
-      // Check if the widget is still mounted before showing the SnackBar
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to upload photo')),
+          const SnackBar(content: Text('Failed to upload photo')),
         );
       }
     }
   }
 
- // Function to save the player's name and avatar selection to Firestore
+  /// Function to save player data
 Future<void> savePlayerData() async {
   if (nameController.text.isEmpty || selectedAvatarUrl == null) {
     if (mounted) {
@@ -82,22 +68,30 @@ Future<void> savePlayerData() async {
     await FirebaseFirestore.instance.collection('users').add({
       'name': nameController.text,
       'avatar': selectedAvatarUrl,
+      'roomCode': widget.roomCode, // Link to the room code
     });
 
-    // Show success message only if the widget is still mounted
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Player data saved successfully')),
+    );
+
+    // Navigate to the team_words.dart screen
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Player data saved successfully')),
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => TeamWordsScreen(roomCode: widget.roomCode),
+        ),
       );
     }
   } catch (e) {
-    // Handle error only if the widget is still mounted
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to save player data')),
+        const SnackBar(content: Text('Failed to save player data')),
       );
     }
-    logger.e('Error saving player data: $e');
   }
 }
 
@@ -105,7 +99,7 @@ Future<void> savePlayerData() async {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Avatar Selection'),
+        title: Text('Avatar Selection for Room: ${widget.roomCode}'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -125,16 +119,13 @@ Future<void> savePlayerData() async {
             ),
             const SizedBox(height: 20),
             ElevatedButton.icon(
-              onPressed: () {
-                logger.d('Open camera button clicked');
-                _takePhotoAndUpload();  // Open the camera and upload photo
-              },
+              onPressed: _takePhotoAndUpload,
               icon: const Icon(Icons.camera_alt),
               label: const Text('Take a Photo'),
             ),
             const SizedBox(height: 20),
             const Text(
-              'Or choose your avatar:',
+              'Choose Your Avatar:',
               style: TextStyle(fontSize: 16),
             ),
             Expanded(
@@ -144,7 +135,6 @@ Future<void> savePlayerData() async {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());
                   }
-
                   if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                     return const Center(child: Text('No avatars available'));
                   }
@@ -160,35 +150,35 @@ Future<void> savePlayerData() async {
                     itemCount: avatars.length,
                     itemBuilder: (context, index) {
                       final avatarData = avatars[index].data() as Map<String, dynamic>;
-                      final avatarUrl = avatarData['url']; // The URL from Firestore
+                      final avatarUrl = avatarData['url'];
 
                       return GestureDetector(
                         onTap: () {
                           setState(() {
-                            selectedAvatarUrl = avatarUrl;  // Update the selected avatar
+                            selectedAvatarUrl = avatarUrl;
                           });
                         },
                         child: Container(
                           decoration: BoxDecoration(
-                            // Apply circular border here as well
                             shape: BoxShape.circle,
                             border: selectedAvatarUrl == avatarUrl
                                 ? Border.all(color: Colors.blue, width: 3)
                                 : null,
                           ),
                           child: ClipOval(
-                            // Ensure the image is a perfect circle
                             child: Image.network(
-                              avatarUrl,  // Display the avatar image from the URL
+                              avatarUrl,
                               fit: BoxFit.cover,
-                              width: 80,  // Define the size for the circular image
-                              height: 80, // Define the size for the circular image
+                              width: 80,
+                              height: 80,
                               loadingBuilder: (context, child, progress) {
                                 if (progress == null) return child;
                                 return const Center(child: CircularProgressIndicator());
                               },
                               errorBuilder: (context, error, stackTrace) {
-                                return const Center(child: Icon(Icons.error, color: Colors.red));
+                                return const Center(
+                                  child: Icon(Icons.error, color: Colors.red),
+                                );
                               },
                             ),
                           ),
@@ -202,8 +192,8 @@ Future<void> savePlayerData() async {
             const SizedBox(height: 20),
             Center(
               child: ElevatedButton(
-                onPressed: savePlayerData,  // Save name and avatar data
-                child: const Text('Next'),
+                onPressed: savePlayerData,
+                child: const Text('Save'),
               ),
             ),
           ],
