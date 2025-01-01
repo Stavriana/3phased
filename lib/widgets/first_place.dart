@@ -4,67 +4,75 @@ import 'package:eksaminiaia/models/room.dart';
 class TeamCard extends StatelessWidget {
   final Team team; // Team object
   final String trophyImage; // Trophy image
-  final double width; // Width of the box
   final double height; // Height of the box
+  final double width; // Width of the box
   final Color backgroundColor; // Background color of the box
 
   const TeamCard({
     super.key,
     required this.team,
     required this.trophyImage,
-    this.width = double.infinity,
-    this.height = 100,
-    this.backgroundColor = Colors.purple,
+    required this.height,
+    required this.width,
+    required this.backgroundColor,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: width,
-      height: height,
-      margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-      padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // Trophy image
-          Image.asset(
-            trophyImage,
-            width: 50,
-            height: 50,
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        // Main box
+        Container(
+          width: width,
+          height: height,
+          decoration: BoxDecoration(
+            color: backgroundColor,
+            borderRadius: BorderRadius.circular(12),
           ),
-          const SizedBox(width: 16),
-          // Team name and points
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  team.name,
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  '${team.points} POINTS',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.white70,
-                  ),
-                ),
-              ],
+          child: Center(
+            child: Text(
+              team.name,
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+              textAlign: TextAlign.center,
             ),
           ),
-        ],
-      ),
+        ),
+        // Trophy image positioned to the left of the box
+        Positioned(
+          left: -40, // Adjust this to move the image further to the left
+          top: height * 0.2, // Center the image vertically relative to the box
+          child: Container(
+            width: 80, // Image width
+            height: 80, // Image height
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage(trophyImage),
+                fit: BoxFit.contain,
+              ),
+            ),
+          ),
+        ),
+        // Points positioned outside and centered at the bottom
+        Positioned(
+          bottom: -30, // Position the points below the box
+          left: 0,
+          right: 0,
+          child: Text(
+            '${team.points} POINTS',
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

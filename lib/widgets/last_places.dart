@@ -3,72 +3,60 @@ import 'package:eksaminiaia/models/room.dart';
 
 class LastPlaces extends StatelessWidget {
   final Team team; // Pass the Team object dynamically
+  final double width; // Pass the width dynamically to fit 3 widgets in a row
 
   const LastPlaces({
     super.key,
     required this.team,
+    required this.width,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 259,
-      height: 166,
-      margin: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Stack(
-        children: [
-          Positioned(
-            left: 0.36,
-            top: 0,
-            child: Container(
-              width: 258.63,
-              height: 106.22,
-              decoration: BoxDecoration(
-                color: const Color(0xFFD1D1D6),
-                borderRadius: BorderRadius.circular(12),
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        // Main Box
+        Container(
+          width: width,
+          height: 70,
+          margin: const EdgeInsets.symmetric(vertical: 8.0),
+          decoration: BoxDecoration(
+            color: const Color(0xFFD1D1D6),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Center(
+            child: Text(
+              team.name,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: Colors.black,
+                fontSize: 20,
+               
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.87,
               ),
             ),
           ),
-          Positioned(
-            left: 0,
-            top: 21,
-            child: SizedBox(
-              width: 258.63,
-              height: 63.95,
-              child: Text(
-                team.name,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: Colors.black,
-                  fontSize: 29,
-                  fontFamily: 'Koulen',
-                  fontWeight: FontWeight.w400,
-                  letterSpacing: 0.87,
-                ),
-              ),
+        ),
+        // Text outside at the bottom
+        Positioned(
+          bottom: -30, // Adjust distance from the bottom of the box
+          left: 0,
+          right: 0,
+          child: Text(
+            '${team.points} points',
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: Colors.black,
+              fontSize: 24,
+              //fontFamily: 'Koulen',
+              fontWeight: FontWeight.bold,
+              //letterSpacing: 1.35,
             ),
           ),
-          Positioned(
-            left: 6,
-            top: 106,
-            child: SizedBox(
-              width: 246,
-              height: 60,
-              child: Text(
-                '${team.points} points',
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: Colors.black,
-                  fontSize: 45,
-                  fontFamily: 'Koulen',
-                  fontWeight: FontWeight.w400,
-                  letterSpacing: 1.35,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

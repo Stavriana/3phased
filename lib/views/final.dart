@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:eksaminiaia/models/room.dart';
 import 'package:eksaminiaia/widgets/first_place.dart';
 import 'package:eksaminiaia/widgets/last_places.dart';
-
-
+import 'package:eksaminiaia/views/code_input_view.dart';
 class ScoreboardScreen extends StatelessWidget {
   final String roomCode;
   final Game game;
@@ -20,98 +19,142 @@ class ScoreboardScreen extends StatelessWidget {
     final sortedTeams = game.ourteams.values.toList()
       ..sort((a, b) => b.points.compareTo(a.points));
 
+    final double screenWidth = MediaQuery.of(context).size.width;
+
     return Scaffold(
-      
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            const SizedBox(height: 20),
-            // Title and Room Code
-            Container(
-            width: double.infinity,
+      body: Column(
+        children: [
+          const SizedBox(height: 60), // Margin at the top
+          // Title and Room Code
+          Container(
+            width: screenWidth * 0.9,
             padding: const EdgeInsets.symmetric(vertical: 16.0),
-            margin: const EdgeInsets.symmetric(horizontal: 16.0), // Optional margin
             decoration: BoxDecoration(
-            color: const Color(0xFF1CA63E), // Green color (#1CA63E)
-            borderRadius: BorderRadius.circular(8.0), // Optional rounded corners
+              color: const Color(0xFF1CA63E), // Green color (#1CA63E)
+              borderRadius: BorderRadius.circular(8),
             ),
             child: const Text(
-             'SCOREBOARD',
-             style: TextStyle(
-              fontSize: 36,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
+              'SCOREBOARD',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
               ),
-             textAlign: TextAlign.center,
+              textAlign: TextAlign.center,
             ),
+          ),
+          const SizedBox(height: 50), // Space after title
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start, // Align content to the left
+                children: [
+                  // Use TeamCard for 1st place
+                  if (sortedTeams.isNotEmpty)
+                    Center(
+                      child: TeamCard(
+                        team: sortedTeams[0],
+                        trophyImage: 'assets/images/firstplace.png',
+                        height: 110,
+                        backgroundColor: Colors.purple,
+                        width: screenWidth * 0.5, // Take 50% of screen width
+                      ),
+                    ),
+                  const SizedBox(height: 50),
+                  // Use TeamCard for 2nd and 3rd places side by side
+                  if (sortedTeams.length > 1 && sortedTeams.length > 2)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        TeamCard(
+                          team: sortedTeams[1],
+                          trophyImage: 'assets/images/secondplace.png',
+                          height: 85,
+                          backgroundColor: const Color(0xFFB69DF7),
+                          width: screenWidth * 0.4, // Each card takes 40% of the screen width
+                        ),
+                        TeamCard(
+                          team: sortedTeams[2],
+                          trophyImage: 'assets/images/thridplace.png',
+                          height: 85,
+                          backgroundColor: const Color(0xFFB69DF7),
+                          width: screenWidth * 0.4, // Each card takes 40% of the screen width
+                        ),
+                      ],
+                    ),
+                  const SizedBox(height: 150),
+                  // Use LastPlaces for 4th and beyond
+                  if (sortedTeams.length > 3)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Wrap(
+                        spacing: 12.0, // Horizontal spacing between elements
+                        runSpacing: 12.0, // Vertical spacing between rows
+                        alignment: WrapAlignment.start, // Align items to the left
+                        children: sortedTeams.sublist(3).map((team) {
+                          return LastPlaces(
+                            team: team,
+                            width: screenWidth * 0.28, // Each card takes 28% of the screen width
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  const SizedBox(height: 20), // Add margin between LastPlaces and buttons
+                ],
+              ),
             ),
-            
-            const SizedBox(height: 30),
-            // Use TeamCard for 1st, 2nd, and 3rd places
-            if (sortedTeams.isNotEmpty)
-              TeamCard(
-                team: sortedTeams[0],
-                trophyImage: 'assets/images/firstplace.png',
-                height: 120,
-                backgroundColor: Colors.purple,
-              ),
-            if (sortedTeams.length > 1)
-              TeamCard(
-                team: sortedTeams[1],
-                trophyImage: 'assets/images/secondplace.png',
-                height: 110,
-                backgroundColor: Colors.grey,
-              ),
-            if (sortedTeams.length > 2)
-              TeamCard(
-                team: sortedTeams[2],
-                trophyImage: 'assets/images/thridplace.png',
-                height: 100,
-                backgroundColor: Colors.orange,
-              ),
-            const SizedBox(height: 20),
-            // Use LastPlaces for 4th, 5th, and 6th places
-            if (sortedTeams.length > 3)
-              Column(
-                children: sortedTeams.sublist(3).map((team) {
-                  return LastPlaces(team: team);
-                }).toList(),
-              ),
-            const SizedBox(height: 20),
-            // New Game and Exit Buttons
-            Row(
+          ),
+          // New Game and Exit Buttons at the bottom
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16.0, 20.0, 16.0, 60.0), // Margins for the buttons
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                    backgroundColor: Colors.green,
+                    backgroundColor: const Color.fromRGBO(175, 172, 76, 1),
+                    minimumSize: Size(screenWidth * 0.6, 75), // Dynamic width, fixed height
                   ),
+                  //child: GestureDetector(
                   onPressed: () {
-                    // Handle new game action
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => CodeInputView()),
+                    );
                   },
                   child: const Text(
-                    'New Game',
-                    style: TextStyle(fontSize: 18),
+                    'NEW GAME',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
                   ),
                 ),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                     backgroundColor: Colors.red,
+                    minimumSize: Size(screenWidth * 0.3, 60), // Same height as the first button
                   ),
                   onPressed: () {
-                    Navigator.pop(context); // Exit action
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => CodeInputView()),
+                    );
                   },
                   child: const Text(
-                    'Exit',
-                    style: TextStyle(fontSize: 18),
+                    'EXIT',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
                   ),
                 ),
               ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
