@@ -139,7 +139,7 @@ class PointsPageState extends State<PointsPage> {
                        Navigator.push(
                          context,
                          MaterialPageRoute(
-                         builder: (context) => ScoreboardScreen(roomCode:widget.roomCode),
+                         builder: (context) => ScoreboardScreen(roomCode:widget.roomCode,game:game),
                          ),
                         );
                        },
