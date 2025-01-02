@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:math';
-import 'pantomime.dart';
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -96,6 +96,7 @@ class AnotherTeamPlayingScreenState extends State<AnotherTeamPlayingScreen> {
     if (availablePlayers.isEmpty) {
       currentTeamIndex = (currentTeamIndex + 1) % teamOrder.length;
 
+      // If we looped through all teams and found no players, stop recursion
       if (currentTeamIndex == 0) {
         debugPrint('No more players available.');
         _navigateToPantomimeScreen();
@@ -151,10 +152,7 @@ class AnotherTeamPlayingScreenState extends State<AnotherTeamPlayingScreen> {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (context) => PantomimeScreen(
-          roomCode: widget.roomCode,
-          team: currentTeamName ?? "Unknown Team",
-        ),
+        builder: (context) => const PantomimeScreen(),
       ),
     );
   }
@@ -232,6 +230,30 @@ class AnotherTeamPlayingScreenState extends State<AnotherTeamPlayingScreen> {
               ],
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class PantomimeScreen extends StatelessWidget {
+  const PantomimeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Pantomime Screen'),
+        backgroundColor: Colors.green,
+      ),
+      body: Center(
+        child: const Text(
+          'Welcome to Pantomime!',
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
         ),
       ),
     );
