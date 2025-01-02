@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'say_what.dart'; // Import the gameplay screen
+import 'avatar_setup.dart';
 
 class TeamWordsScreen extends StatefulWidget {
-  const TeamWordsScreen({super.key, required this.roomCode});
-
   final String roomCode;
+
+  const TeamWordsScreen({super.key, required this.roomCode});
 
   @override
   TeamWordsScreenState createState() => TeamWordsScreenState();
@@ -37,28 +37,27 @@ class TeamWordsScreenState extends State<TeamWordsScreen> {
     }
 
     try {
-      // Save structured data to Firestore
-      final playerData = {
-        'team': selectedTeam,
-        'words': words,
-      };
-
+      // Append words to Firestore
       await FirebaseFirestore.instance.collection('Rooms').doc(widget.roomCode).update({
-        'words': FieldValue.arrayUnion([playerData]), // Append player data to the words array
+        'words': FieldValue.arrayUnion(words),
       });
 
-      if (!mounted) return;
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Words saved successfully')),
+        );
 
-      // Navigate to the gameplay screen
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => GamePlayScreen(
-            roomCode: widget.roomCode,
-            team: selectedTeam!,
+        // Navigate to AvatarSelectionScreen with the selected team
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => AvatarSelectionScreen(
+              roomCode: widget.roomCode,
+              team: selectedTeam!, // Pass the selected team
+            ),
           ),
-        ),
-      );
+        );
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -72,7 +71,7 @@ class TeamWordsScreenState extends State<TeamWordsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Choose Team and Type your Words'),
+        title: const Text('Choose Team and Type Your Words'),
       ),
       body: FutureBuilder<DocumentSnapshot>(
         future: FirebaseFirestore.instance.collection('Rooms').doc(widget.roomCode).get(),
@@ -89,7 +88,7 @@ class TeamWordsScreenState extends State<TeamWordsScreen> {
           final teams = roomData['ourteams'] as Map<String, dynamic>;
           final numOfWords = roomData['numofwords'] as int;
 
-          // Initialize controllers if not already initialized
+          // Initialize word controllers
           if (wordControllers.isEmpty) {
             wordControllers = List.generate(numOfWords, (_) => TextEditingController());
           }
@@ -134,17 +133,15 @@ class TeamWordsScreenState extends State<TeamWordsScreen> {
                   ),
                 );
               }),
-              const SizedBox(height: 24.0),
               Center(
-                child: GestureDetector(
-                  onTap: _saveWordsAndProceed,
-                  child: Image.asset(
-                    'assets/images/ready_arrow.png',
-                    width: 200, // Increased size
-                    height: 200, // Increased size
-                  ),
-                ),
-              ),
+  child: GestureDetector(
+    onTap: _saveWordsAndProceed, // Trigger navigation when the image is tapped
+    child: Image.asset(
+      'assets/images/ready_arrow.png', // Path to your image
+      height: 100, // Adjust size as needed
+    ),
+  ),
+),
             ],
           );
         },
@@ -154,7 +151,7 @@ class TeamWordsScreenState extends State<TeamWordsScreen> {
 
   @override
   void dispose() {
-    // Dispose of all controllers
+    // Dispose of controllers
     for (var controller in wordControllers) {
       controller.dispose();
     }
