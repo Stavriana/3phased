@@ -6,12 +6,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AnotherTeamPlayingScreen extends StatefulWidget {
   final String roomCode;
-  final String currentPlayerName;
 
   const AnotherTeamPlayingScreen({
     super.key,
     required this.roomCode,
-    required this.currentPlayerName,
   });
 
   @override
@@ -27,7 +25,11 @@ class AnotherTeamPlayingScreenState extends State<AnotherTeamPlayingScreen> {
   String? currentAvatarUrl;
 
   List<String> teamOrder = [];
+  Map<String, List<Map<String, dynamic>>> allTeamsWithPlayers = {};
   int currentTeamIndex = 0;
+
+  List<String> playedPlayers = []; // Tracks players who have already played
+  bool allPlayersPlayed = false; // Tracks if all players have played
 
   @override
   void initState() {
@@ -43,20 +45,35 @@ class AnotherTeamPlayingScreenState extends State<AnotherTeamPlayingScreen> {
           .doc(widget.roomCode)
           .get();
 
-      if (!roomDoc.exists) throw 'Room not found';
+      if (!roomDoc.exists) {
+        throw 'Room with code ${widget.roomCode} not found.';
+      }
 
       final roomData = roomDoc.data()!;
+      debugPrint('Room Data: $roomData');
+
       final teams = roomData['ourteams'] as Map<String, dynamic>;
 
       // Use 't1' as the duration, default to 60 if not found
-      timeRemaining = (roomData['t1'] ?? 60) as int;
+      timeRemaining = roomData.containsKey('t1') ? roomData['t1'] as int : 60;
 
       // Set up the team order
       teamOrder = teams.keys.toList();
-      currentTeamIndex = roomData['currentTeamIndex'] ?? 0;
+      currentTeamIndex = 0;
 
-      // Initialize the current team and player
-      await _initializeTeamAndPlayer(teams);
+      // Populate all teams with their players
+      for (var teamKey in teamOrder) {
+        final teamData = teams[teamKey] as Map<String, dynamic>;
+        final players = (teamData['players'] as List<dynamic>)
+            .map((player) => player as Map<String, dynamic>)
+            .toList();
+        allTeamsWithPlayers[teamKey] = players;
+      }
+
+      debugPrint('All Teams with Players: $allTeamsWithPlayers');
+
+      // Start with the first team
+      await _initializeTeamAndPlayer();
       _startTimer();
     } catch (e) {
       debugPrint('Error setting up the game: $e');
@@ -68,63 +85,61 @@ class AnotherTeamPlayingScreenState extends State<AnotherTeamPlayingScreen> {
     }
   }
 
-  Future<void> _initializeTeamAndPlayer(Map<String, dynamic> teams) async {
+  Future<void> _initializeTeamAndPlayer() async {
     try {
-      final currentTeamKey = teamOrder[currentTeamIndex];
-      final teamData = teams[currentTeamKey] as Map<String, dynamic>;
-      final playersQuery = await FirebaseFirestore.instance
-          .collection('users')
-          .where('roomCode', isEqualTo: widget.roomCode)
-          .get();
+      // Check if all players have played
+      if (playedPlayers.length ==
+          allTeamsWithPlayers.values
+              .expand((players) => players)
+              .length) {
+        setState(() {
+          allPlayersPlayed = true;
+        });
+        debugPrint('All players have played.');
+        _navigateToPantomimeScreen();
+        return;
+      }
 
-      // Filter users belonging to the current team
-      final players = playersQuery.docs
-          .where((doc) => doc['team'] == currentTeamKey)
-          .map((doc) => doc.data()['name'] as String)
+      final currentTeamKey = teamOrder[currentTeamIndex];
+      final teamPlayers = allTeamsWithPlayers[currentTeamKey] ?? [];
+
+      debugPrint('Current Team Key: $currentTeamKey');
+      debugPrint('Players in Team: $teamPlayers');
+
+      // Filter out players who have already played
+      final availablePlayers = teamPlayers
+          .where((player) => !playedPlayers.contains(player['name']))
           .toList();
 
-      // Filter out the current player
-      final availablePlayers =
-          players.where((player) => player != widget.currentPlayerName).toList();
+      debugPrint('Available Players: $availablePlayers');
 
       if (availablePlayers.isEmpty) {
-        debugPrint('No players in the current team.');
+        debugPrint('No available players in team $currentTeamKey.');
+
+        // Move to the next team
+        currentTeamIndex = (currentTeamIndex + 1) % teamOrder.length;
+        await _initializeTeamAndPlayer(); // Recursively call for the next team
         return;
       }
 
       // Randomly select a player
       final randomPlayerIndex = Random().nextInt(availablePlayers.length);
-      currentPlayerName = availablePlayers[randomPlayerIndex];
+      final selectedPlayer = availablePlayers[randomPlayerIndex];
 
-      // Fetch the avatar for the selected player
-      await _fetchPlayerAvatar(currentPlayerName!);
+      currentPlayerName = selectedPlayer['name'];
+      currentAvatarUrl = selectedPlayer['avatar'];
+
+      // Mark the player as played
+      playedPlayers.add(currentPlayerName!);
 
       setState(() {
-        currentTeamName = teamData['name'];
+        currentTeamName = currentTeamKey;
       });
+
+      debugPrint('Selected Player: $currentPlayerName');
+      debugPrint('Selected Player Avatar: $currentAvatarUrl');
     } catch (e) {
       debugPrint('Error initializing team and player: $e');
-    }
-  }
-
-  Future<void> _fetchPlayerAvatar(String playerName) async {
-    try {
-      // Fetch the user document based on the player's name
-      final userQuery = await FirebaseFirestore.instance
-          .collection('users')
-          .where('name', isEqualTo: playerName)
-          .get();
-
-      if (userQuery.docs.isNotEmpty) {
-        final userDoc = userQuery.docs.first;
-        setState(() {
-          currentAvatarUrl = userDoc['avatar'];
-        });
-      } else {
-        throw 'Avatar not found for player $playerName';
-      }
-    } catch (e) {
-      debugPrint('Error fetching avatar: $e');
     }
   }
 
@@ -141,14 +156,28 @@ class AnotherTeamPlayingScreenState extends State<AnotherTeamPlayingScreen> {
     });
   }
 
-  void _onTimerEnd() {
+  void _onTimerEnd() async {
+    if (allPlayersPlayed) {
+      // Navigate to the PantomimeScreen when all players have played
+      _navigateToPantomimeScreen();
+      return;
+    }
+
+    // Move to the next team after timer ends
+    currentTeamIndex = (currentTeamIndex + 1) % teamOrder.length;
+
+    // Initialize the next team and player
+    await _initializeTeamAndPlayer();
+
+    // Restart the timer
+    _startTimer();
+  }
+
+  void _navigateToPantomimeScreen() {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (context) => AnotherTeamPlayingScreen(
-          roomCode: widget.roomCode,
-          currentPlayerName: currentPlayerName!,
-        ),
+        builder: (context) => const PantomimeScreen(),
       ),
     );
   }
@@ -163,7 +192,7 @@ class AnotherTeamPlayingScreenState extends State<AnotherTeamPlayingScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Another Team is Playing'),
+        title: const Text('SAY WHAT?'),
         backgroundColor: Colors.orangeAccent,
       ),
       body: Container(
@@ -183,21 +212,20 @@ class AnotherTeamPlayingScreenState extends State<AnotherTeamPlayingScreen> {
             ),
             const SizedBox(height: 40),
             // Avatar image or placeholder
-            if (currentAvatarUrl != null)
-              CircleAvatar(
-                backgroundImage: NetworkImage(currentAvatarUrl!),
-                radius: 80,
-              )
-            else
-              const CircleAvatar(
-                backgroundColor: Colors.grey,
-                radius: 80,
-                child: Icon(
-                  Icons.person,
-                  size: 80,
-                  color: Colors.white,
-                ),
-              ),
+            CircleAvatar(
+              backgroundImage: currentAvatarUrl != null
+                  ? NetworkImage(currentAvatarUrl!)
+                  : null,
+              backgroundColor: currentAvatarUrl == null ? Colors.grey : null,
+              radius: 80,
+              child: currentAvatarUrl == null
+                  ? const Icon(
+                      Icons.person,
+                      size: 80,
+                      color: Colors.white,
+                    )
+                  : null,
+            ),
             const SizedBox(height: 20),
             Text(
               currentPlayerName ?? 'Loading Player...',
@@ -229,6 +257,30 @@ class AnotherTeamPlayingScreenState extends State<AnotherTeamPlayingScreen> {
               ],
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class PantomimeScreen extends StatelessWidget {
+  const PantomimeScreen({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Pantomime Screen'),
+        backgroundColor: Colors.green,
+      ),
+      body: Center(
+        child: Text(
+          'Welcome to Pantomime!',
+          style: const TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
         ),
       ),
     );
