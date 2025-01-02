@@ -122,8 +122,7 @@ class TeamsSetState extends State<TeamsSet> {
         "points": _updateRoomController.ourteams[teamKey]?.points ?? 0,
         "players": _updateRoomController.ourteams[teamKey]?.players
                 .map((player) => player.toJson())
-                .toList() ??
-            [],
+                .toList() ?? [],
       };
     });
 
@@ -141,8 +140,8 @@ class TeamsSetState extends State<TeamsSet> {
 
     Get.snackbar('Success', 'Teams have been saved successfully');
 
-    // Navigate to AvatarSetup screen
-    Get.toNamed('/avatarSetup', arguments: {'roomCode': widget.roomCode});
+    // Navigate to TeamWordsScreen
+    Get.toNamed('/teamWordsScreen', arguments: {'roomCode': widget.roomCode});
   } catch (e) {
     log('Error saving teams: $e', name: 'TeamsSet', level: 1000);
     Get.snackbar('Error', 'Failed to save teams: $e');

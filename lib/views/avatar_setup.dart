@@ -3,12 +3,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-import 'team_words.dart';
+import 'say_what.dart';
 
 class AvatarSelectionScreen extends StatefulWidget {
-  final String roomCode; // Room code passed from CodeInputView
+  final String roomCode;
+  final String team;
 
-  const AvatarSelectionScreen({super.key, required this.roomCode});
+  const AvatarSelectionScreen({super.key, required this.roomCode, required this.team});
 
   @override
   AvatarSelectionScreenState createState() => AvatarSelectionScreenState();
@@ -54,62 +55,64 @@ class AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
   }
 
   /// Function to save player data
-Future<void> savePlayerData() async {
-  if (nameController.text.isEmpty || selectedAvatarUrl == null) {
-    if (mounted) {
+  Future<void> savePlayerData() async {
+    if (nameController.text.isEmpty || selectedAvatarUrl == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please enter your name and select an avatar')),
+        );
+      }
+      return;
+    }
+
+    try {
+      final teamPath = 'ourteams.${widget.team}.players';
+
+      await FirebaseFirestore.instance.collection('Rooms').doc(widget.roomCode).update({
+        teamPath: FieldValue.arrayUnion([
+          {'name': nameController.text, 'avatar': selectedAvatarUrl}
+        ]),
+      });
+
+      if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter your name and select an avatar')),
+        const SnackBar(content: Text('Player added successfully')),
       );
-    }
-    return;
-  }
 
-  try {
-    await FirebaseFirestore.instance.collection('users').add({
-      'name': nameController.text,
-      'avatar': selectedAvatarUrl,
-      'roomCode': widget.roomCode, // Link to the room code
-    });
-
-    if (!mounted) return;
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Player data saved successfully')),
-    );
-
-    // Navigate to the team_words.dart screen
-    if (mounted) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => TeamWordsScreen(roomCode: widget.roomCode),
-        ),
-      );
-    }
-  } catch (e) {
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to save player data')),
-      );
+      // Navigate to the gameplay screen or next stage
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => GamePlayScreen(
+              roomCode: widget.roomCode,
+              team: widget.team,
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to add player: $e')),
+        );
+      }
     }
   }
-}
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Avatar Selection for Room: ${widget.roomCode}'),
+        title: Text('Avatar Selection for Team: ${widget.team}'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Enter Your Name:',
-              style: TextStyle(fontSize: 16),
-            ),
+            const Text('Enter Your Name:', style: TextStyle(fontSize: 16)),
             TextField(
               controller: nameController,
               decoration: const InputDecoration(
@@ -124,10 +127,7 @@ Future<void> savePlayerData() async {
               label: const Text('Take a Photo'),
             ),
             const SizedBox(height: 20),
-            const Text(
-              'Choose Your Avatar:',
-              style: TextStyle(fontSize: 16),
-            ),
+            const Text('Choose Your Avatar:', style: TextStyle(fontSize: 16)),
             Expanded(
               child: StreamBuilder<QuerySnapshot>(
                 stream: FirebaseFirestore.instance.collection('avatars').snapshots(),

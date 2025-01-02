@@ -1,7 +1,7 @@
+import 'package:eksaminiaia/views/team_words.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart'; // For GetX state management
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:eksaminiaia/views/avatar_setup.dart';
 import 'set_it_up_page.dart'; // Import SetItUpPage for room creation
 
 class CodeInputView extends StatefulWidget {
@@ -71,7 +71,7 @@ class _CodeInputViewState extends State<CodeInputView> {
 
       if (roomData != null) {
         // Navigate to PointsPage with the room code
-        Get.to(() => AvatarSelectionScreen(roomCode: enteredCode));
+        Get.to(() => TeamWordsScreen(roomCode: enteredCode));
       } else {
         Get.snackbar(
           'Error',
