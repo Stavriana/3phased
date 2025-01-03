@@ -3,15 +3,58 @@ import 'package:eksaminiaia/models/room.dart';
 import 'package:eksaminiaia/widgets/first_place.dart';
 import 'package:eksaminiaia/widgets/last_places.dart';
 import 'package:eksaminiaia/views/code_input_view.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firestore
+import 'package:just_audio/just_audio.dart';
 class ScoreboardScreen extends StatelessWidget {
   final String roomCode;
   final Game game;
 
-  const ScoreboardScreen({
+  // Define the AudioPlayer instance
+  final AudioPlayer _audioPlayer = AudioPlayer();
+  
+  // Remove `const` here because `_audioPlayer` is not a constant
+  ScoreboardScreen({
     super.key,
     required this.roomCode,
     required this.game,
   });
+
+   // Fetch sound URL from Firestore
+  Future<String> _fetchSoundUrl() async {
+    final doc = await FirebaseFirestore.instance
+        .collection('sounds') // Replace with your Firestore collection name
+        .doc('finalSound') // Replace with your document name
+        .get();
+
+    if (doc.exists && doc.data() != null) {
+      return doc['url']; // Assumes 'url' field contains the sound URL
+    } else {
+      throw Exception('Sound not found in Firestore');
+    }
+  }
+
+    // Play sound and navigate
+  void _playSoundAndNavigate(BuildContext context, Widget page) async {
+    try {
+      // Fetch the sound URL from Firestore
+      String soundUrl = await _fetchSoundUrl();
+
+      // Set the audio URL in just_audio and play
+      await _audioPlayer.setUrl(soundUrl); // Set the sound URL
+      _audioPlayer.play(); // Play the sound
+
+      // Ensure the widget is still mounted before using the context
+      if (!context.mounted) return;
+
+      // Navigate to the next screen
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => page),
+      );
+    } catch (e) {
+      //print('Error fetching or playing sound: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -115,12 +158,8 @@ class ScoreboardScreen extends StatelessWidget {
                     backgroundColor: const Color.fromRGBO(175, 172, 76, 1),
                     minimumSize: Size(screenWidth * 0.6, 75), // Dynamic width, fixed height
                   ),
-                  //child: GestureDetector(
                   onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => CodeInputView()),
-                    );
+                    _playSoundAndNavigate(context, CodeInputView());
                   },
                   child: const Text(
                     'NEW GAME',
@@ -137,10 +176,7 @@ class ScoreboardScreen extends StatelessWidget {
                     minimumSize: Size(screenWidth * 0.3, 60), // Same height as the first button
                   ),
                   onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => CodeInputView()),
-                    );
+                    _playSoundAndNavigate(context, CodeInputView());
                   },
                   child: const Text(
                     'EXIT',

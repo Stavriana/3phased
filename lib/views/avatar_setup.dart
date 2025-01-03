@@ -3,8 +3,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-import 'say_what.dart';
-
+//import 'say_what.dart';
+import 'chatroom_screen.dart';
 class AvatarSelectionScreen extends StatefulWidget {
   final String roomCode;
   final String team;
@@ -85,13 +85,15 @@ class AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => GamePlayScreen(
+            builder: (context) => ChatroomScreen(
               roomCode: widget.roomCode,
-              team: widget.team,
+              playerName: nameController.text, // Pass the player's name
+              avatarUrl: selectedAvatarUrl!,   // Pass the avatar URL
             ),
           ),
         );
       }
+
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
