@@ -3,7 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'another_player_sw.dart';
+import 'another_player_p.dart';
 
 class PantomimeScreen extends StatefulWidget {
   final String roomCode;
@@ -40,7 +40,7 @@ class PantomimeScreenState extends State<PantomimeScreen> {
       final data = doc.data()!;
       final roomWords = data['words'] as List<dynamic>;
 
-      final duration = (data['t2'] ?? 60) as int;  // Changed 't1' to 't2'
+      final duration = (data['t2'] ?? 60) as int; 
 
       words = roomWords.map((word) => word.toString()).toList();
 
@@ -104,7 +104,7 @@ class PantomimeScreenState extends State<PantomimeScreen> {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (context) => AnotherTeamPlayingScreen(
+        builder: (context) => PantomimeTeamPlayingScreen(
           roomCode: widget.roomCode,
         ),
       ),

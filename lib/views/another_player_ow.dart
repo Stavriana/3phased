@@ -1,23 +1,22 @@
 import 'dart:async';
-import 'dart:math';
-
+import 'points_page.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class AnotherTeamPlayingScreen extends StatefulWidget {
+class OneWordTeamPlayingScreen extends StatefulWidget {
   final String roomCode;
 
-  const AnotherTeamPlayingScreen({
+  const OneWordTeamPlayingScreen({
     super.key,
     required this.roomCode,
   });
 
   @override
-  AnotherTeamPlayingScreenState createState() =>
-      AnotherTeamPlayingScreenState();
+  OneWordTeamPlayingScreenState createState() =>
+      OneWordTeamPlayingScreenState();
 }
 
-class AnotherTeamPlayingScreenState extends State<AnotherTeamPlayingScreen> {
+class OneWordTeamPlayingScreenState extends State<OneWordTeamPlayingScreen> {
   Timer? timer;
   int timeRemaining = 0;
   String? currentTeamName;
@@ -51,7 +50,7 @@ class AnotherTeamPlayingScreenState extends State<AnotherTeamPlayingScreen> {
       final roomData = roomDoc.data()!;
       final teams = roomData['ourteams'] as Map<String, dynamic>;
 
-      defaultTimerDuration = roomData['t1'] ?? 10;
+      defaultTimerDuration = roomData['t2'] ?? 10;
       timeRemaining = defaultTimerDuration;
 
       teamOrder = teams.keys.toList();
@@ -79,10 +78,11 @@ class AnotherTeamPlayingScreenState extends State<AnotherTeamPlayingScreen> {
   Future<void> _initializeTeamAndPlayer() async {
     debugPrint('Initializing team and player...');
 
-    if (playedPlayers.length ==
-        allTeamsWithPlayers.values.expand((players) => players).length) {
+    final allPlayers =
+        allTeamsWithPlayers.values.expand((players) => players).toList();
+    if (playedPlayers.length == allPlayers.length) {
       debugPrint('All players have played.');
-      _navigateToPantomimeScreen();
+      _navigateToNextScreen();
       return;
     }
 
@@ -95,22 +95,14 @@ class AnotherTeamPlayingScreenState extends State<AnotherTeamPlayingScreen> {
 
     if (availablePlayers.isEmpty) {
       currentTeamIndex = (currentTeamIndex + 1) % teamOrder.length;
-
-      // If we looped through all teams and found no players, stop recursion
-      if (currentTeamIndex == 0) {
-        debugPrint('No more players available.');
-        _navigateToPantomimeScreen();
-        return;
-      }
-
       await _initializeTeamAndPlayer();
       return;
     }
 
-    final randomPlayerIndex = Random().nextInt(availablePlayers.length);
-    final selectedPlayer = availablePlayers[randomPlayerIndex];
+    final selectedPlayer = availablePlayers.first;
 
     playedPlayers.add(selectedPlayer['name']);
+
     setState(() {
       currentPlayerName = selectedPlayer['name'];
       currentAvatarUrl = selectedPlayer['avatar'];
@@ -118,6 +110,7 @@ class AnotherTeamPlayingScreenState extends State<AnotherTeamPlayingScreen> {
       timeRemaining = defaultTimerDuration;
     });
 
+    currentTeamIndex = (currentTeamIndex + 1) % teamOrder.length;
     _startTimer();
   }
 
@@ -140,19 +133,21 @@ class AnotherTeamPlayingScreenState extends State<AnotherTeamPlayingScreen> {
     if (playedPlayers.length ==
         allTeamsWithPlayers.values.expand((players) => players).length) {
       debugPrint('All players have played.');
-      _navigateToPantomimeScreen();
+      _navigateToNextScreen();
       return;
     }
 
     await _initializeTeamAndPlayer();
   }
 
-  void _navigateToPantomimeScreen() {
-    debugPrint('Navigating to PantomimeScreen...');
+  void _navigateToNextScreen() {
+    debugPrint('Navigating to the next screen...');
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (context) => const PantomimeScreen(),
+        builder: (context) => PointsPage(
+          roomCode: widget.roomCode,
+        ),
       ),
     );
   }
@@ -167,11 +162,11 @@ class AnotherTeamPlayingScreenState extends State<AnotherTeamPlayingScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('SAY WHAT?'),
-        backgroundColor: Colors.orangeAccent,
+        title: const Text('ONE WORD'),
+        backgroundColor: Colors.greenAccent,
       ),
       body: Container(
-        color: Colors.yellow,
+        color: Colors.green,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -182,7 +177,7 @@ class AnotherTeamPlayingScreenState extends State<AnotherTeamPlayingScreen> {
               style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: Colors.black,
+                color: Colors.white,
               ),
             ),
             const SizedBox(height: 40),
@@ -206,7 +201,7 @@ class AnotherTeamPlayingScreenState extends State<AnotherTeamPlayingScreen> {
               style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w500,
-                color: Colors.black,
+                color: Colors.white,
               ),
             ),
             const SizedBox(height: 40),
@@ -224,36 +219,12 @@ class AnotherTeamPlayingScreenState extends State<AnotherTeamPlayingScreen> {
                   style: const TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                    color: Colors.white,
                   ),
                 ),
               ],
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class PantomimeScreen extends StatelessWidget {
-  const PantomimeScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Pantomime Screen'),
-        backgroundColor: Colors.green,
-      ),
-      body: Center(
-        child: const Text(
-          'Welcome to Pantomime!',
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
-          ),
         ),
       ),
     );

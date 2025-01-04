@@ -3,7 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'another_player_sw.dart';
+import 'another_player_ow.dart';
 
 class OneWordScreen extends StatefulWidget {
   final String roomCode;
@@ -104,7 +104,7 @@ class OneWordScreenState extends State<OneWordScreen> {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (context) => AnotherTeamPlayingScreen(
+        builder: (context) => OneWordTeamPlayingScreen(
           roomCode: widget.roomCode,
         ),
       ),
