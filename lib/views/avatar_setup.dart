@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-import 'say_what.dart';
+import 'chat_display.dart';
 
 class AvatarSelectionScreen extends StatefulWidget {
   final String roomCode;
@@ -85,7 +85,7 @@ class AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => GamePlayScreen(
+            builder: (context) => PlayerDisplayScreen(
               roomCode: widget.roomCode,
               team: widget.team,
             ),
