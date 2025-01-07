@@ -60,9 +60,10 @@ class PlayerDisplayScreen extends StatelessWidget {
 
                   return GridView.builder(
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 4,
-                      crossAxisSpacing: 8.0,
-                      mainAxisSpacing: 8.0,
+                      crossAxisCount: 3, // Reduce to 3 to allow more space for each avatar
+                      crossAxisSpacing: 16.0, // Space between columns
+                      mainAxisSpacing: 16.0, // Space between rows
+                      childAspectRatio: 0.8, // Adjust to allow full display of avatars and names
                     ),
                     itemCount: allPlayers.length,
                     itemBuilder: (context, index) {
@@ -72,20 +73,20 @@ class PlayerDisplayScreen extends StatelessWidget {
                         children: [
                           CircleAvatar(
                             backgroundImage: NetworkImage(player['avatar'] ?? ''),
-                            radius: 40,
-                            onBackgroundImageError: (error, stackTrace) => Icon(Icons.error, color: Colors.red),
+                            radius: 50, // Larger radius for better visibility
+                            onBackgroundImageError: (error, stackTrace) =>
+                                Icon(Icons.error, color: Colors.red),
                           ),
                           SizedBox(height: 5),
-                          Flexible(
-                            child: Text(
-                              player['name'] ?? 'Unknown',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                              ),
-                              textAlign: TextAlign.center,
-                              overflow: TextOverflow.ellipsis,
+                          Text(
+                            player['name'] ?? 'Unknown',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16, // Larger font for readability
                             ),
+                            textAlign: TextAlign.center,
+                            maxLines: 2, // Allow up to 2 lines for names
+                            overflow: TextOverflow.ellipsis, // Truncate if necessary
                           ),
                         ],
                       );
@@ -112,7 +113,11 @@ class PlayerDisplayScreen extends StatelessWidget {
                       ),
                     );
                   },
-                  child: Image.asset('assets/images/start.png', width: 100),
+                  child: Image.asset(
+                    'assets/images/start.png',
+                    width: 150, // Increased width for larger button
+                    height: 60, // Increased height for larger button
+                  ),
                 ),
                 GestureDetector(
                   onTap: () {
@@ -126,7 +131,11 @@ class PlayerDisplayScreen extends StatelessWidget {
                       ),
                     );
                   },
-                  child: Image.asset('assets/images/chat.png', width: 100),
+                  child: Image.asset(
+                    'assets/images/chat.png',
+                    width: 100, // Keep this unchanged or adjust as needed
+                    height: 50,
+                  ),
                 ),
               ],
             ),
