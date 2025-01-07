@@ -101,6 +101,7 @@ class PlayerDisplayScreen extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                Spacer(), // Push the Start button to the center
                 GestureDetector(
                   onTap: () {
                     Navigator.push(
@@ -115,10 +116,11 @@ class PlayerDisplayScreen extends StatelessWidget {
                   },
                   child: Image.asset(
                     'assets/images/start.png',
-                    width: 150, // Increased width for larger button
-                    height: 60, // Increased height for larger button
+                    width: 150, // Larger width
+                    height: 60, // Larger height
                   ),
                 ),
+                Spacer(flex: 2), // Add more space after the Start button
                 GestureDetector(
                   onTap: () {
                     Navigator.push(
@@ -133,7 +135,7 @@ class PlayerDisplayScreen extends StatelessWidget {
                   },
                   child: Image.asset(
                     'assets/images/chat.png',
-                    width: 100, // Keep this unchanged or adjust as needed
+                    width: 100, // Keep chat button size smaller
                     height: 50,
                   ),
                 ),
