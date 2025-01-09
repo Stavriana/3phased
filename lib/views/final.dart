@@ -3,7 +3,10 @@ import 'package:eksaminiaia/models/room.dart';
 import 'package:eksaminiaia/widgets/first_place.dart';
 import 'package:eksaminiaia/widgets/last_places.dart';
 import 'package:eksaminiaia/views/code_input_view.dart';
-class ScoreboardScreen extends StatelessWidget {
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:just_audio/just_audio.dart';
+
+class ScoreboardScreen extends StatefulWidget {
   final String roomCode;
   final Game game;
 
@@ -14,9 +17,54 @@ class ScoreboardScreen extends StatelessWidget {
   });
 
   @override
+  State<ScoreboardScreen> createState() => _ScoreboardScreenState();
+}
+
+class _ScoreboardScreenState extends State<ScoreboardScreen> {
+  final AudioPlayer _audioPlayer = AudioPlayer();
+
+  @override
+  void initState() {
+    super.initState();
+    _playSound(); // Play the sound as the first action
+  }
+
+  Future<String> _fetchSoundUrl() async {
+    final doc = await FirebaseFirestore.instance
+        .collection('sounds')
+        .doc('finalSound')
+        .get();
+
+    if (doc.exists && doc.data() != null) {
+      return doc['url'];
+    } else {
+      throw Exception('Sound not found in Firestore');
+    }
+  }
+
+  void _playSound() async {
+    try {
+      String soundUrl = await _fetchSoundUrl();
+      await _audioPlayer.setUrl(soundUrl);
+      await _audioPlayer.play();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error playing sound: $e')),
+        );
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _audioPlayer.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // Sort teams by points in descending order
-    final sortedTeams = game.ourteams.values.toList()
+    final sortedTeams = widget.game.ourteams.values.toList()
       ..sort((a, b) => b.points.compareTo(a.points));
 
     final double screenWidth = MediaQuery.of(context).size.width;
@@ -24,32 +72,34 @@ class ScoreboardScreen extends StatelessWidget {
     return Scaffold(
       body: Column(
         children: [
-          const SizedBox(height: 60), // Margin at the top
-          // Title and Room Code
-          Container(
-            width: screenWidth * 0.9,
-            padding: const EdgeInsets.symmetric(vertical: 16.0),
-            decoration: BoxDecoration(
-              color: const Color(0xFF1CA63E), // Green color (#1CA63E)
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Text(
-              'SCOREBOARD',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
+          const SizedBox(height: 60),
+          // Title
+          Align(
+            alignment: Alignment.center,
+            child: Container(
+              width: screenWidth * 0.9,
+              padding: const EdgeInsets.symmetric(vertical: 16.0),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1CA63E),
+                borderRadius: BorderRadius.circular(8),
               ),
-              textAlign: TextAlign.center,
+              child: const Text(
+                'SCOREBOARD',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+                textAlign: TextAlign.center,
+              ),
             ),
           ),
-          const SizedBox(height: 50), // Space after title
+          const SizedBox(height: 50),
           Expanded(
             child: SingleChildScrollView(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start, // Align content to the left
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // Use TeamCard for 1st place
                   if (sortedTeams.isNotEmpty)
                     Center(
                       child: TeamCard(
@@ -57,12 +107,11 @@ class ScoreboardScreen extends StatelessWidget {
                         trophyImage: 'assets/images/firstplace.png',
                         height: 110,
                         backgroundColor: Colors.purple,
-                        width: screenWidth * 0.5, // Take 50% of screen width
+                        width: screenWidth * 0.6, // Center 1st place card
                       ),
                     ),
                   const SizedBox(height: 50),
-                  // Use TeamCard for 2nd and 3rd places side by side
-                  if (sortedTeams.length > 1 && sortedTeams.length > 2)
+                  if (sortedTeams.length > 1)
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
@@ -71,55 +120,52 @@ class ScoreboardScreen extends StatelessWidget {
                           trophyImage: 'assets/images/secondplace.png',
                           height: 85,
                           backgroundColor: const Color(0xFFB69DF7),
-                          width: screenWidth * 0.4, // Each card takes 40% of the screen width
+                          width: screenWidth * 0.4,
                         ),
-                        TeamCard(
-                          team: sortedTeams[2],
-                          trophyImage: 'assets/images/thridplace.png',
-                          height: 85,
-                          backgroundColor: const Color(0xFFB69DF7),
-                          width: screenWidth * 0.4, // Each card takes 40% of the screen width
-                        ),
+                        if (sortedTeams.length > 2)
+                          TeamCard(
+                            team: sortedTeams[2],
+                            trophyImage: 'assets/images/thridplace.png',
+                            height: 85,
+                            backgroundColor: const Color(0xFFB69DF7),
+                            width: screenWidth * 0.4,
+                          ),
                       ],
                     ),
-                  const SizedBox(height: 150),
-                  // Use LastPlaces for 4th and beyond
+                  const SizedBox(height: 100),
                   if (sortedTeams.length > 3)
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
                       child: Wrap(
-                        spacing: 12.0, // Horizontal spacing between elements
-                        runSpacing: 12.0, // Vertical spacing between rows
-                        alignment: WrapAlignment.start, // Align items to the left
+                        spacing: 16.0,
+                        runSpacing: 16.0,
                         children: sortedTeams.sublist(3).map((team) {
                           return LastPlaces(
                             team: team,
-                            width: screenWidth * 0.28, // Each card takes 28% of the screen width
+                            width: screenWidth * 0.28,
                           );
                         }).toList(),
                       ),
                     ),
-                  const SizedBox(height: 20), // Add margin between LastPlaces and buttons
                 ],
               ),
             ),
           ),
-          // New Game and Exit Buttons at the bottom
+          // New Game and Exit Buttons
           Padding(
-            padding: const EdgeInsets.fromLTRB(16.0, 20.0, 16.0, 60.0), // Margins for the buttons
+            padding: const EdgeInsets.fromLTRB(16.0, 20.0, 16.0, 60.0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color.fromRGBO(175, 172, 76, 1),
-                    minimumSize: Size(screenWidth * 0.6, 75), // Dynamic width, fixed height
+                    minimumSize: Size(screenWidth * 0.6, 75),
                   ),
-                  //child: GestureDetector(
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => CodeInputView()),
+                      MaterialPageRoute(builder: (context) => const CodeInputView()),
                     );
                   },
                   child: const Text(
@@ -134,12 +180,12 @@ class ScoreboardScreen extends StatelessWidget {
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.red,
-                    minimumSize: Size(screenWidth * 0.3, 60), // Same height as the first button
+                    minimumSize: Size(screenWidth * 0.3, 60),
                   ),
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => CodeInputView()),
+                      MaterialPageRoute(builder: (context) => const CodeInputView()),
                     );
                   },
                   child: const Text(

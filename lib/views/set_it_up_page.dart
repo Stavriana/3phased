@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-//import 'package:eksaminiaia/controllers/updateroom_controller.dart';
 import 'package:eksaminiaia/controllers.dart/updateroom_controller.dart';
 import 'package:eksaminiaia/repositories/updateroom_repository.dart';
 import 'package:eksaminiaia/widgets/custom_counter_widget.dart';
@@ -14,7 +13,6 @@ class SetItUpPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Initialize the UpdateRoomController with Get.put for dependency injection
     final UpdateRoomController controller = Get.put(
       UpdateRoomController(repository: UpdateRoomRepository()),
     );
@@ -32,7 +30,6 @@ class SetItUpPage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     const SizedBox(height: 40),
-
                     // Number of Teams Counter
                     CustomCounterWidget(
                       labelText: "NUMBER OF TEAMS",
@@ -112,6 +109,16 @@ class SetItUpPage extends StatelessWidget {
                     GestureDetector(
                       onTap: () async {
                         try {
+                          // Ensure adminId is not null or empty
+                          if (controller.adminId.value.isEmpty) {
+                            Get.snackbar(
+                              'Error',
+                              'Admin ID is not set. Please ensure you are logged in.',
+                              snackPosition: SnackPosition.BOTTOM,
+                            );
+                            return;
+                          }
+
                           // Save the room details
                           await controller.saveRoom(
                             roomCode: roomCode,
@@ -121,6 +128,7 @@ class SetItUpPage extends StatelessWidget {
                             t1: controller.t1.value,
                             t2: controller.t2.value,
                             t3: controller.t3.value,
+                            admin: controller.adminId.value,
                           );
 
                           // Navigate to TeamsSet page
@@ -133,10 +141,9 @@ class SetItUpPage extends StatelessWidget {
                             snackPosition: SnackPosition.BOTTOM,
                           );
                         } catch (e) {
-                          // Show error message
                           Get.snackbar(
                             'Error',
-                            'Failed to save room. Please try again.',
+                            'Failed to save room: ${e.toString()}',
                             snackPosition: SnackPosition.BOTTOM,
                           );
                         }

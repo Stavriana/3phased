@@ -3,7 +3,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-import 'say_what.dart';
+import 'points_page.dart';
+//import 'package:eksaminiaia/models/room.dart';
 
 class AvatarSelectionScreen extends StatefulWidget {
   final String roomCode;
@@ -67,11 +68,21 @@ class AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
 
     try {
       final teamPath = 'ourteams.${widget.team}.players';
+      final roomDocRef = FirebaseFirestore.instance.collection('Rooms').doc(widget.roomCode);
+
+      // Fetch only the `playersin` field from Firestore
+      final roomDoc = await roomDocRef.get(const GetOptions(
+      source: Source.serverAndCache,
+    ));
+      // Increment playersin count
+      final currentPlayersIn = roomDoc.data()?['playersin'] ?? 0;
+      final updatedPlayersIn = currentPlayersIn + 1;
 
       await FirebaseFirestore.instance.collection('Rooms').doc(widget.roomCode).update({
         teamPath: FieldValue.arrayUnion([
           {'name': nameController.text, 'avatar': selectedAvatarUrl}
         ]),
+        'playersin': updatedPlayersIn, // Save the incremented value
       });
 
       if (!mounted) return;
@@ -85,9 +96,10 @@ class AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => GamePlayScreen(
+            builder: (context) => PointsPage(
               roomCode: widget.roomCode,
-              team: widget.team,
+              //game: widget.Game,
+              //team: widget.team,
             ),
           ),
         );
