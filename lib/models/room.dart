@@ -1,5 +1,3 @@
-//import 'dart:developer';
-
 class Game {
   final String? id; // Room code
   final int numofteams;
@@ -8,7 +6,9 @@ class Game {
   final int t1;
   final int t2;
   final int t3;
+  final String? adminId; // ID of the room creator
   final Map<String, Team> ourteams;
+  final int playersin; // Tracks the total number of players
 
   Game({
     this.id,
@@ -18,10 +18,12 @@ class Game {
     required this.t1,
     required this.t2,
     required this.t3,
-    this.ourteams = const {}, // Default value: empty map
+    required this.adminId,
+    this.ourteams = const {},
+    this.playersin = 0,
   });
 
-  // Convert to Firestore format
+  // Convert to Firestore-compatible JSON format
   Map<String, dynamic> toJson() {
     return {
       "id": id,
@@ -31,7 +33,9 @@ class Game {
       "t1": t1,
       "t2": t2,
       "t3": t3,
+      "adminId": adminId,
       "ourteams": ourteams.map((key, team) => MapEntry(key, team.toJson())),
+      "playersin": playersin,
     };
   }
 
@@ -39,16 +43,18 @@ class Game {
   factory Game.fromFirestore(String id, Map<String, dynamic> data) {
     return Game(
       id: id,
-      numofteams: data["numofteams"] ?? 0, // Default to 0 if null
+      numofteams: data["numofteams"] ?? 0,
       numofplayers: data["numofplayers"] ?? 0,
       numofwords: data["numofwords"] ?? 0,
       t1: data["t1"] ?? 0,
       t2: data["t2"] ?? 0,
       t3: data["t3"] ?? 0,
+      adminId: data["adminId"], // Default to null if not present
       ourteams: (data["ourteams"] as Map<String, dynamic>?)?.map(
             (key, value) => MapEntry(key, Team.fromJson(value)),
           ) ??
-          {}, // Default to empty map if null
+          {},
+      playersin: data["playersin"] ?? 0,
     );
   }
 }

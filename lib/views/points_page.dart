@@ -5,6 +5,8 @@ import 'package:eksaminiaia/models/room.dart';
 import 'package:eksaminiaia/widgets/points_display.dart';
 import 'package:eksaminiaia/views/code_input_view.dart'; // Import CodeInputView
 import 'package:eksaminiaia/views/final.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
 class PointsPage extends StatefulWidget {
   final String roomCode;
 
@@ -134,20 +136,107 @@ class PointsPageState extends State<PointsPage> {
                   Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: ElevatedButton(
-                      onPressed: () {
-  // Navigate to ScoreboardApp and pass the roomCode
-                       Navigator.push(
-                         context,
-                         MaterialPageRoute(
-                         builder: (context) => ScoreboardScreen(roomCode:widget.roomCode,game:game),
-                         ),
-                        );
-                       },
+                      onPressed: () async {
+                        try {
+                          // Get the current authenticated user
+                          final currentUser = FirebaseAuth.instance.currentUser;
 
+                          if (currentUser == null) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'You must be signed in to perform this action.',
+                                  ),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
+                            return;
+                          }
+
+                          // Fetch the room data from Firestore
+                          final docSnapshot = await FirebaseFirestore.instance
+                              .collection('Rooms')
+                              .doc(widget.roomCode)
+                              .get();
+
+                          if (!docSnapshot.exists) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Room not found. Please try again.',
+                                  ),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
+                            return;
+                          }
+
+                          final roomData = docSnapshot.data();
+                          if (roomData == null || roomData['adminId'] == null) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Invalid room data. Please try again.',
+                                  ),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
+                            return;
+                          }
+
+                          // Check if the current user is the admin
+                          if (roomData['adminId'] != currentUser.uid) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Only the admin can proceed to the next screen.',
+                                  ),
+                                  backgroundColor: Colors.orange,
+                                ),
+                              );
+                            }
+                            return;
+                          }
+
+                          // If the user is the admin, navigate to the next screen
+                          if (context.mounted) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ScoreboardScreen(
+                                  roomCode: widget.roomCode,
+                                  game: game,
+                                ),
+                              ),
+                            );
+                          }
+                        } catch (e) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'An error occurred. Please try again later.',
+                                ),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
+                        }
+                      },
                       style: ElevatedButton.styleFrom(
                         foregroundColor: Colors.white,
                         backgroundColor: Colors.purple,
-                        padding: EdgeInsets.symmetric(horizontal: 50, vertical: 20),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 50,
+                          vertical: 20,
+                        ),
                         textStyle: TextStyle(fontSize: 20),
                       ),
                       child: Text('NEXT'),
@@ -179,4 +268,4 @@ class PointsPageState extends State<PointsPage> {
       ),
     );
   }
-} 
+}

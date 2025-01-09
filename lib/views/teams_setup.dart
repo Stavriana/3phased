@@ -42,16 +42,29 @@ class TeamsSetState extends State<TeamsSet> {
     super.dispose();
   }
 
-  void fetchGameDetails() {
-    Future.delayed(Duration.zero, () {
+  void fetchGameDetails() async {
+    try {
+      final gameDoc = await FirebaseFirestore.instance.collection('Rooms').doc(widget.roomCode).get();
+
+      if (!gameDoc.exists) {
+        throw Exception('Room with code ${widget.roomCode} does not exist.');
+      }
+
+      final gameData = gameDoc.data()!;
+      final game = Game.fromFirestore(gameDoc.id, gameData);
+
+      // Update the controller with the fetched game details
+      _updateRoomController.updateGame(game);
+
+      // Update local state for UI
       setState(() {
         teamNames.clear();
         selectedColors.clear();
         nameControllers.clear();
 
-        for (int i = 1; i <= _updateRoomController.numOfTeams.value; i++) {
+        for (int i = 1; i <= game.numofteams; i++) {
           final teamKey = "Team $i";
-          final team = _updateRoomController.ourteams[teamKey];
+          final team = game.ourteams[teamKey];
 
           final name = team?.name ?? "";
           teamNames[i] = name;
@@ -62,14 +75,12 @@ class TeamsSetState extends State<TeamsSet> {
           if (color != const Color(0xFFFFFFFF)) {
             selectedColors.add(color);
           }
-
-          if (team == null) {
-            _updateRoomController.ourteams[teamKey] =
-                Team(name: "", color: "#FFFFFF", players: []);
-          }
         }
       });
-    });
+    } catch (e) {
+      log('Error fetching game details: $e', name: 'TeamsSet', level: 1000);
+      Get.snackbar('Error', 'Failed to fetch game details: $e');
+    }
   }
 
   void handleNameChange(int teamNumber, String name) {
@@ -110,43 +121,56 @@ class TeamsSetState extends State<TeamsSet> {
   }
 
   Future<void> saveTeams() async {
-  try {
-    final updatedTeams = <String, Map<String, dynamic>>{};
-    teamNames.forEach((teamNumber, name) {
-      final teamKey = "Team $teamNumber";
-      final colorHex = _colorToHex(teamColors[teamNumber] ?? const Color(0xFFFFFFFF));
+    try {
+      // Prepare the updated teams data
+      final updatedTeams = <String, Map<String, dynamic>>{};
+      teamNames.forEach((teamNumber, name) {
+        final teamKey = "Team $teamNumber";
+        final colorHex = _colorToHex(teamColors[teamNumber] ?? const Color(0xFFFFFFFF));
 
-      updatedTeams[teamKey] = {
-        "name": name,
-        "color": colorHex,
-        "points": _updateRoomController.ourteams[teamKey]?.points ?? 0,
-        "players": _updateRoomController.ourteams[teamKey]?.players
-                .map((player) => player.toJson())
-                .toList() ?? [],
-      };
-    });
+        updatedTeams[teamKey] = {
+          "name": name,
+          "color": colorHex,
+          "points": _updateRoomController.ourteams[teamKey]?.points ?? 0,
+          "players": _updateRoomController.ourteams[teamKey]?.players
+                  .map((player) => player.toJson())
+                  .toList() ?? [],
+        };
+      });
 
-    log('Saving Teams: $updatedTeams', name: 'TeamsSet');
+      log('Saving Teams: $updatedTeams', name: 'TeamsSet');
 
-    await FirebaseFirestore.instance.collection('Rooms').doc(widget.roomCode).update({
-      "numofteams": _updateRoomController.numOfTeams.value,
-      "numofplayers": _updateRoomController.numOfPlayers.value,
-      "numofwords": _updateRoomController.numOfWords.value,
-      "ourteams": updatedTeams,
-      "t1": _updateRoomController.t1.value,
-      "t2": _updateRoomController.t2.value,
-      "t3": _updateRoomController.t3.value,
-    });
+      // Fetch the current game document to ensure `adminId` and other fields are preserved
+      final gameDoc = await FirebaseFirestore.instance.collection('Rooms').doc(widget.roomCode).get();
 
-    Get.snackbar('Success', 'Teams have been saved successfully');
+      if (!gameDoc.exists) {
+        throw Exception('Room with code ${widget.roomCode} does not exist.');
+      }
 
-    // Navigate to TeamWordsScreen
-    Get.toNamed('/teamWordsScreen', arguments: {'roomCode': widget.roomCode});
-  } catch (e) {
-    log('Error saving teams: $e', name: 'TeamsSet', level: 1000);
-    Get.snackbar('Error', 'Failed to save teams: $e');
+      final existingData = gameDoc.data() ?? {};
+      final adminId = existingData['adminId']; // Preserve adminId
+
+      // Update the Firestore document with both new and existing data
+      await FirebaseFirestore.instance.collection('Rooms').doc(widget.roomCode).update({
+        "numofteams": _updateRoomController.numOfTeams.value,
+        "numofplayers": _updateRoomController.numOfPlayers.value,
+        "numofwords": _updateRoomController.numOfWords.value,
+        "ourteams": updatedTeams,
+        "t1": _updateRoomController.t1.value,
+        "t2": _updateRoomController.t2.value,
+        "t3": _updateRoomController.t3.value,
+        "adminId": adminId, // Ensure adminId is saved back
+      });
+
+      Get.snackbar('Success', 'Teams have been saved successfully');
+
+      // Navigate to the next screen
+      Get.toNamed('/teamWordsScreen', arguments: {'roomCode': widget.roomCode});
+    } catch (e) {
+      log('Error saving teams: $e', name: 'TeamsSet', level: 1000);
+      Get.snackbar('Error', 'Failed to save teams: $e');
+    }
   }
-}
 
   String _colorToHex(Color color) {
     return '#${color.red.toRadixString(16).padLeft(2, '0').toUpperCase()}'
