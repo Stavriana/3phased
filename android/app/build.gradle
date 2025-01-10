@@ -1,6 +1,6 @@
 plugins {
     id "com.android.application"
-    id "com.google.gms.google-services" // Google Services plugin
+    id "com.google.gms.google-services"
     id "kotlin-android"
     id "dev.flutter.flutter-gradle-plugin"
 }
@@ -16,7 +16,6 @@ android {
         versionCode = 1
         versionName = "1.0"
 
-        // Enable multidex if needed
         multiDexEnabled true
     }
 
@@ -35,21 +34,12 @@ android {
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
-
-        debug {
-            minifyEnabled false
-            shrinkResources false
-        }
     }
 }
 
-flutter {
-    source = "../.."
-}
-
 dependencies {
-    implementation platform('com.google.firebase:firebase-bom:32.0.0') // Firebase BOM
-    implementation 'com.google.firebase:firebase-analytics-ktx'       // Firebase Analytics
-    implementation "androidx.core:core-ktx:1.10.1"                     // AndroidX Core
-    implementation "androidx.multidex:multidex:2.0.1"                  // Enable MultiDex
+    implementation platform('com.google.firebase:firebase-bom:32.0.0')
+    implementation 'com.google.firebase:firebase-analytics-ktx'
+    implementation "androidx.core:core-ktx:1.10.1"
+    implementation "androidx.multidex:multidex:2.0.1"
 }
