@@ -2,6 +2,7 @@ import 'dart:async';
 import 'points_page.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'code_input_view.dart';
 
 class OneWordTeamPlayingScreen extends StatefulWidget {
   final String roomCode;
@@ -266,7 +267,12 @@ class OneWordTeamPlayingScreenState extends State<OneWordTeamPlayingScreen> {
               padding: const EdgeInsets.all(16.0),
               child: GestureDetector(
                 onTap: () {
-                  Navigator.pop(context);
+                  Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const CodeInputView(),
+      ),
+    );
                 },
                 child: Image.asset(
                   'assets/images/house.png',

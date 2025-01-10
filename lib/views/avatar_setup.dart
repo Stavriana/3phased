@@ -4,6 +4,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'chat_display.dart';
+import 'code_input_view.dart'; // Import the CodeInputView
 
 class AvatarSelectionScreen extends StatefulWidget {
   final String roomCode;
@@ -19,7 +20,6 @@ class AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
   String? selectedAvatarUrl;
   final TextEditingController nameController = TextEditingController();
 
-  /// Function to pick an image and upload to Firebase Storage
   Future<void> _takePhotoAndUpload() async {
     final picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.camera);
@@ -54,73 +54,80 @@ class AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
     }
   }
 
-  /// Function to save player data
-  /// Function to save player data
-Future<void> savePlayerData() async {
-  if (nameController.text.isEmpty || selectedAvatarUrl == null) {
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter your name and select an avatar')),
-      );
+  Future<void> savePlayerData() async {
+    if (nameController.text.isEmpty || selectedAvatarUrl == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please enter your name and select an avatar')),
+        );
+      }
+      return;
     }
-    return;
-  }
 
-  try {
-    final playerData = {
-      'name': nameController.text,
-      'avatar': selectedAvatarUrl,
-    };
+    try {
+      final playerData = {
+        'name': nameController.text,
+        'avatar': selectedAvatarUrl,
+      };
 
-    // Update player data in the `chosen` field
-    await FirebaseFirestore.instance
-        .collection('Rooms')
-        .doc(widget.roomCode)
-        .update({
-      'chosen': FieldValue.arrayUnion([playerData]),
-    });
+      await FirebaseFirestore.instance.collection('Rooms').doc(widget.roomCode).update({
+        'chosen': FieldValue.arrayUnion([playerData]),
+      });
 
-    // Update player data in the specific team's players list
-    final teamPath = 'ourteams.${widget.team}.players';
-    await FirebaseFirestore.instance
-        .collection('Rooms')
-        .doc(widget.roomCode)
-        .update({
-      teamPath: FieldValue.arrayUnion([playerData]),
-    });
+      final teamPath = 'ourteams.${widget.team}.players';
+      await FirebaseFirestore.instance.collection('Rooms').doc(widget.roomCode).update({
+        teamPath: FieldValue.arrayUnion([playerData]),
+      });
 
-    if (!mounted) return;
+      if (!mounted) return;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Player added successfully')),
-    );
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Player added successfully')),
+      );
 
-    // Navigate to the gameplay screen or next stage
-    if (mounted) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => PlayerDisplayScreen(
-            roomCode: widget.roomCode,
-            team: widget.team,
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => PlayerDisplayScreen(
+              roomCode: widget.roomCode,
+              team: widget.team,
+            ),
           ),
-        ),
-      );
-    }
-  } catch (e) {
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to add player: $e')),
-      );
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to add player: $e')),
+        );
+      }
     }
   }
-}
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Avatar Selection for Team: ${widget.team}'),
+        actions: [
+          GestureDetector(
+            onTap: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const CodeInputView()),
+              );
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Image.asset(
+                'assets/images/house.png',
+                width: 40,
+                height: 40,
+              ),
+            ),
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:math';
-
+import 'code_input_view.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'another_player_sw.dart';
@@ -202,7 +202,12 @@ class GamePlayScreenState extends State<GamePlayScreen> {
               padding: const EdgeInsets.all(16.0),
               child: GestureDetector(
                 onTap: () {
-                  Navigator.pop(context);
+                  Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const CodeInputView(),
+      ),
+    );
                 },
                 child: Image.asset(
                   'assets/images/house.png',

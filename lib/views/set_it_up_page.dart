@@ -135,7 +135,7 @@ class SetItUpPage extends StatelessWidget {
                               );
 
                               // Navigate to TeamsSet page
-                              Get.to(() => TeamWordsScreen(roomCode: roomCode));
+                              Get.to(() => TeamsSet(roomCode: roomCode));
 
 
                               // Show success message
