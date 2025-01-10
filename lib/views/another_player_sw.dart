@@ -75,52 +75,83 @@ class AnotherTeamPlayingScreenState extends State<AnotherTeamPlayingScreen> {
     }
   }
 
-  Future<void> _initializeTeamAndPlayer() async {
+Future<void> _initializeTeamAndPlayer() async {
   debugPrint('Initializing team and player...');
 
-  // Check if all players across all teams have played
-  final allPlayers = allTeamsWithPlayers.values.expand((players) => players).toList();
-  if (playedPlayers.length == allPlayers.length) {
-    debugPrint('All players have played.');
-    _navigateToPantomimeScreen();
-    return;
+  try {
+    // Fetch the `chosen` field from Firestore
+    final roomDoc = await FirebaseFirestore.instance
+        .collection('Rooms')
+        .doc(widget.roomCode)
+        .get();
+
+    final chosenPlayers = (roomDoc.data()?['chosen'] as List<dynamic>? ?? [])
+        .map((player) => player as Map<String, dynamic>)
+        .toList();
+
+    // Get a list of all players excluding those in the `chosen` list
+    final allEligiblePlayers = allTeamsWithPlayers.values
+        .expand((players) => players)
+        .where((player) => !chosenPlayers.any(
+              (chosen) =>
+                  chosen['name'] == player['name'] &&
+                  chosen['avatar'] == player['avatar'],
+            ))
+        .toList();
+
+    // Check if all eligible players have played
+    if (playedPlayers.length == allEligiblePlayers.length) {
+      debugPrint('All eligible players have played.');
+      _navigateToPantomimeScreen();
+      return;
+    }
+
+    // Get the current team key
+    final currentTeamKey = teamOrder[currentTeamIndex];
+    final teamPlayers = allTeamsWithPlayers[currentTeamKey] ?? [];
+
+    // Find available players in the current team who have not yet played
+    final availableTeamPlayers = teamPlayers
+        .where((player) =>
+            !playedPlayers.contains(player['name']) && // Exclude played players
+            !chosenPlayers.any(
+              (chosen) =>
+                  chosen['name'] == player['name'] &&
+                  chosen['avatar'] == player['avatar'],
+            )) // Exclude players in the chosen list
+        .toList();
+
+    if (availableTeamPlayers.isEmpty) {
+      // Move to the next team if no players are available in the current team
+      currentTeamIndex = (currentTeamIndex + 1) % teamOrder.length;
+      await _initializeTeamAndPlayer();
+      return;
+    }
+
+    // Select the first available player
+    final selectedPlayer = availableTeamPlayers.first;
+
+    // Add the player to the list of played players
+    playedPlayers.add(selectedPlayer['name']);
+
+    // Update the state with the selected player's details
+    setState(() {
+      currentPlayerName = selectedPlayer['name'];
+      currentAvatarUrl = selectedPlayer['avatar'];
+      currentTeamName = currentTeamKey;
+      timeRemaining = defaultTimerDuration;
+    });
+
+    // Start the timer for the current player
+    _startTimer();
+  } catch (e) {
+    debugPrint('Error initializing team and player: $e');
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
   }
-
-  // Get the current team key
-  final currentTeamKey = teamOrder[currentTeamIndex];
-  final teamPlayers = allTeamsWithPlayers[currentTeamKey] ?? [];
-
-  // Find available players in the current team who have not yet played
-  final availablePlayers = teamPlayers
-      .where((player) => !playedPlayers.contains(player['name']))
-      .toList();
-
-  if (availablePlayers.isEmpty) {
-    // Move to the next team if no players are available in the current team
-    currentTeamIndex = (currentTeamIndex + 1) % teamOrder.length;
-    await _initializeTeamAndPlayer();
-    return;
-  }
-
-  // Select the first available player (or use random selection if preferred)
-  final selectedPlayer = availablePlayers.first;
-
-  // Add the player to the list of played players
-  playedPlayers.add(selectedPlayer['name']);
-
-  // Update the state with the selected player's details
-  setState(() {
-    currentPlayerName = selectedPlayer['name'];
-    currentAvatarUrl = selectedPlayer['avatar'];
-    currentTeamName = currentTeamKey;
-    timeRemaining = defaultTimerDuration;
-  });
-
-  // Move to the next team for the next turn
-  currentTeamIndex = (currentTeamIndex + 1) % teamOrder.length;
-
-  // Start the timer for the current player
-  _startTimer();
 }
 
   void _startTimer() {
@@ -146,6 +177,7 @@ class AnotherTeamPlayingScreenState extends State<AnotherTeamPlayingScreen> {
       return;
     }
 
+    currentTeamIndex = (currentTeamIndex + 1) % teamOrder.length;
     await _initializeTeamAndPlayer();
   }
 

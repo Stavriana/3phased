@@ -55,51 +55,66 @@ class AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
   }
 
   /// Function to save player data
-  Future<void> savePlayerData() async {
-    if (nameController.text.isEmpty || selectedAvatarUrl == null) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please enter your name and select an avatar')),
-        );
-      }
-      return;
-    }
-
-    try {
-      final teamPath = 'ourteams.${widget.team}.players';
-
-      await FirebaseFirestore.instance.collection('Rooms').doc(widget.roomCode).update({
-        teamPath: FieldValue.arrayUnion([
-          {'name': nameController.text, 'avatar': selectedAvatarUrl}
-        ]),
-      });
-
-      if (!mounted) return;
-
+  /// Function to save player data
+Future<void> savePlayerData() async {
+  if (nameController.text.isEmpty || selectedAvatarUrl == null) {
+    if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Player added successfully')),
+        const SnackBar(content: Text('Please enter your name and select an avatar')),
       );
+    }
+    return;
+  }
 
-      // Navigate to the gameplay screen or next stage
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => PlayerDisplayScreen(
-              roomCode: widget.roomCode,
-              team: widget.team,
-            ),
+  try {
+    final playerData = {
+      'name': nameController.text,
+      'avatar': selectedAvatarUrl,
+    };
+
+    // Update player data in the `chosen` field
+    await FirebaseFirestore.instance
+        .collection('Rooms')
+        .doc(widget.roomCode)
+        .update({
+      'chosen': FieldValue.arrayUnion([playerData]),
+    });
+
+    // Update player data in the specific team's players list
+    final teamPath = 'ourteams.${widget.team}.players';
+    await FirebaseFirestore.instance
+        .collection('Rooms')
+        .doc(widget.roomCode)
+        .update({
+      teamPath: FieldValue.arrayUnion([playerData]),
+    });
+
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Player added successfully')),
+    );
+
+    // Navigate to the gameplay screen or next stage
+    if (mounted) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => PlayerDisplayScreen(
+            roomCode: widget.roomCode,
+            team: widget.team,
           ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to add player: $e')),
-        );
-      }
+        ),
+      );
+    }
+  } catch (e) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to add player: $e')),
+      );
     }
   }
+}
 
   @override
   Widget build(BuildContext context) {
