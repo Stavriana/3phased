@@ -120,79 +120,99 @@ class PantomimeScreenState extends State<PantomimeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        color: Colors.blue,  // Changed background color to blue
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text(
-              'PANTOMIME',  // Changed title to 'PANTOMIME'
-              style: TextStyle(
-                fontSize: 50,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
-            ),
-            const SizedBox(height: 40),
-            Stack(
-              alignment: Alignment.center,
+      body: Stack(
+        children: [
+          Container(
+            color: Colors.blue,  // Changed background color to blue
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Image.asset(
-                  'assets/images/boom.png',
-                  width: 350,
-                  height: 350,
-                  fit: BoxFit.contain,
-                ),
-                Text(
-                  currentWord.isNotEmpty ? currentWord : 'Loading...',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 36,
+                const Text(
+                  'PANTOMIME',  // Changed title to 'PANTOMIME'
+                  style: TextStyle(
+                    fontSize: 50,
                     fontWeight: FontWeight.bold,
                     color: Colors.black,
                   ),
                 ),
-              ],
-            ),
-            const SizedBox(height: 40),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Image.asset(
-                  'assets/images/hourglass.png',
-                  width: 80,
-                  height: 80,
+                const SizedBox(height: 40),
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Image.asset(
+                      'assets/images/boom.png',
+                      width: 350,
+                      height: 350,
+                      fit: BoxFit.contain,
+                    ),
+                    Text(
+                      currentWord.isNotEmpty ? currentWord : 'Loading...',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 36,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 20),
-                Text(
-                  '00:${timeRemaining.toString().padLeft(2, '0')}',
-                  style: const TextStyle(
-                    fontSize: 48,
-                    fontWeight: FontWeight.bold,
+                const SizedBox(height: 40),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image.asset(
+                      'assets/images/hourglass.png',
+                      width: 80,
+                      height: 80,
+                    ),
+                    const SizedBox(width: 20),
+                    Text(
+                      '00:${timeRemaining.toString().padLeft(2, '0')}',
+                      style: const TextStyle(
+                        fontSize: 48,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 40),
+                GestureDetector(
+                  onTap: _onDone,
+                  child: Image.asset(
+                    'assets/images/done.png',
+                    width: 250,
+                    height: 100,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                GestureDetector(
+                  onTap: _onStop,
+                  child: Image.asset(
+                    'assets/images/stop.png',
+                    width: 250,
+                    height: 100,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 40),
-            GestureDetector(
-              onTap: _onDone,
-              child: Image.asset(
-                'assets/images/done.png',
-                width: 250,
-                height: 100,
+          ),
+          Align(
+            alignment: Alignment.bottomLeft,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.pop(context);
+                },
+                child: Image.asset(
+                  'assets/images/house.png',
+                  width: 40,
+                  height: 40,
+                ),
               ),
             ),
-            const SizedBox(height: 20),
-            GestureDetector(
-              onTap: _onStop,
-              child: Image.asset(
-                'assets/images/stop.png',
-                width: 250,
-                height: 100,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

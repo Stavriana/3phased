@@ -73,78 +73,98 @@ class TeamWordsScreenState extends State<TeamWordsScreen> {
       appBar: AppBar(
         title: const Text('Choose Team and Type Your Words'),
       ),
-      body: FutureBuilder<DocumentSnapshot>(
-        future: FirebaseFirestore.instance.collection('Rooms').doc(widget.roomCode).get(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      body: Stack(
+        children: [
+          FutureBuilder<DocumentSnapshot>(
+            future: FirebaseFirestore.instance.collection('Rooms').doc(widget.roomCode).get(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-          if (!snapshot.hasData || snapshot.data == null) {
-            return const Center(child: Text('Room not found'));
-          }
+              if (!snapshot.hasData || snapshot.data == null) {
+                return const Center(child: Text('Room not found'));
+              }
 
-          final roomData = snapshot.data!.data() as Map<String, dynamic>;
-          final teams = roomData['ourteams'] as Map<String, dynamic>;
-          final numOfWords = roomData['numofwords'] as int;
+              final roomData = snapshot.data!.data() as Map<String, dynamic>;
+              final teams = roomData['ourteams'] as Map<String, dynamic>;
+              final numOfWords = roomData['numofwords'] as int;
 
-          // Initialize word controllers
-          if (wordControllers.isEmpty) {
-            wordControllers = List.generate(numOfWords, (_) => TextEditingController());
-          }
+              // Initialize word controllers
+              if (wordControllers.isEmpty) {
+                wordControllers = List.generate(numOfWords, (_) => TextEditingController());
+              }
 
-          return ListView(
-            padding: const EdgeInsets.all(16.0),
-            children: [
-              const Text(
-                'CHOOSE YOUR TEAM',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16.0),
-              ...teams.entries.map((team) {
-                return ListTile(
-                  leading: Radio<String>(
-                    value: team.key,
-                    groupValue: selectedTeam,
-                    onChanged: (value) {
-                      setState(() {
-                        selectedTeam = value;
-                      });
-                    },
+              return ListView(
+                padding: const EdgeInsets.all(16.0),
+                children: [
+                  const Text(
+                    'CHOOSE YOUR TEAM',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
-                  title: Text(team.value['name']),
-                );
-              }),
-              const SizedBox(height: 24.0),
-              const Text(
-                'INSERT YOUR WORDS',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16.0),
-              ...List.generate(numOfWords, (index) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  child: TextField(
-                    controller: wordControllers[index],
-                    decoration: InputDecoration(
-                      border: const OutlineInputBorder(),
-                      labelText: 'Word ${index + 1}',
+                  const SizedBox(height: 16.0),
+                  ...teams.entries.map((team) {
+                    return ListTile(
+                      leading: Radio<String>(
+                        value: team.key,
+                        groupValue: selectedTeam,
+                        onChanged: (value) {
+                          setState(() {
+                            selectedTeam = value;
+                          });
+                        },
+                      ),
+                      title: Text(team.value['name']),
+                    );
+                  }),
+                  const SizedBox(height: 24.0),
+                  const Text(
+                    'INSERT YOUR WORDS',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 16.0),
+                  ...List.generate(numOfWords, (index) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: TextField(
+                        controller: wordControllers[index],
+                        decoration: InputDecoration(
+                          border: const OutlineInputBorder(),
+                          labelText: 'Word ${index + 1}',
+                        ),
+                      ),
+                    );
+                  }),
+                  Center(
+                    child: GestureDetector(
+                      onTap: _saveWordsAndProceed, // Trigger navigation when the image is tapped
+                      child: Image.asset(
+                        'assets/images/ready_arrow.png', // Path to your image
+                        height: 100, // Adjust size as needed
+                      ),
                     ),
                   ),
-                );
-              }),
-              Center(
-  child: GestureDetector(
-    onTap: _saveWordsAndProceed, // Trigger navigation when the image is tapped
-    child: Image.asset(
-      'assets/images/ready_arrow.png', // Path to your image
-      height: 100, // Adjust size as needed
-    ),
-  ),
-),
-            ],
-          );
-        },
+                ],
+              );
+            },
+          ),
+          Align(
+            alignment: Alignment.bottomLeft,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.pop(context);
+                },
+                child: Image.asset(
+                  'assets/images/house.png',
+                  width: 40,
+                  height: 40,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

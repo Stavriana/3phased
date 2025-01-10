@@ -138,8 +138,7 @@ class TeamsSetState extends State<TeamsSet> {
 
       log('Saving Teams: $updatedTeams', name: 'TeamsSet');
 
-      final gameDoc =
-          await FirebaseFirestore.instance.collection('Rooms').doc(widget.roomCode).get();
+      final gameDoc = await FirebaseFirestore.instance.collection('Rooms').doc(widget.roomCode).get();
 
       if (!gameDoc.exists) {
         throw Exception('Room with code ${widget.roomCode} does not exist.');
@@ -161,13 +160,7 @@ class TeamsSetState extends State<TeamsSet> {
 
       Get.snackbar('Success', 'Teams have been saved successfully');
 
-      // Navigate to RulesPageApp
-      //Navigator.push(
-      //context,
-      //MaterialPageRoute(
-      //  builder: (context) => RulesPageApp(), // Replace with the actual page
-      //),
-      //);
+      Get.toNamed('/teamWordsScreen', arguments: {'roomCode': widget.roomCode});
     } catch (e) {
       log('Error saving teams: $e', name: 'TeamsSet', level: 1000);
       Get.snackbar('Error', 'Failed to save teams: $e');
@@ -195,127 +188,147 @@ class TeamsSetState extends State<TeamsSet> {
         title: Text('Room Code: ${widget.roomCode}'),
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20.0),
-              child: Text(
-                'TEAM NAME:',
-                style: TextStyle(
-                  fontSize: 35,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            child: Column(
+              children: [
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20.0),
+                  child: Text(
+                    'TEAM NAME:',
+                    style: TextStyle(
+                      fontSize: 35,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
                 ),
-              ),
-            ),
-            const SizedBox(height: 10),
-            for (int i = 1; i <= _updateRoomController.numOfTeams.value; i++) ...[
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10),
-                child: Row(
-                  children: [
-                    SizedBox(
-                      width: 100,
-                      child: Text(
-                        'Team $i:',
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
+                const SizedBox(height: 10),
+                for (int i = 1; i <= _updateRoomController.numOfTeams.value; i++) ...[
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10),
+                    child: Row(
+                      children: [
+                        SizedBox(
+                          width: 100,
+                          child: Text(
+                            'Team $i:',
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                    Expanded(
-                      child: TextField(
-                        controller: nameControllers[i],
-                        onChanged: (value) => handleNameChange(i, value),
-                        decoration: const InputDecoration(
-                          filled: true,
-                          fillColor: Color(0xFFE5E5EA),
-                          border: InputBorder.none,
+                        Expanded(
+                          child: TextField(
+                            controller: nameControllers[i],
+                            onChanged: (value) => handleNameChange(i, value),
+                            decoration: const InputDecoration(
+                              filled: true,
+                              fillColor: Color(0xFFE5E5EA),
+                              border: InputBorder.none,
+                            ),
+                            style: const TextStyle(fontSize: 20),
+                          ),
                         ),
-                        style: const TextStyle(fontSize: 20),
-                      ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10),
-                child: Row(
-                  children: [
-                    SizedBox(
-                      width: 100,
-                      child: Text(
-                        'Team $i:',
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10),
+                    child: Row(
+                      children: [
+                        SizedBox(
+                          width: 100,
+                          child: Text(
+                            'Team $i:',
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                    Expanded(
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: [
-                            for (Color color in [
-                              Colors.pink,
-                              Colors.yellow,
-                              Colors.blue,
-                              Colors.orange,
-                              Colors.green,
-                              Colors.red
-                            ])
-                              GestureDetector(
-                                onTap: () {
-                                  if (!isColorTaken(color) || teamColors[i] == color) {
-                                    handleColorChange(i, color);
-                                  }
-                                },
-                                child: Container(
-                                  margin: const EdgeInsets.symmetric(horizontal: 5),
-                                  width: 35,
-                                  height: 35,
-                                  decoration: BoxDecoration(
-                                    color: color,
-                                    shape: BoxShape.circle,
-                                    border: teamColors[i] == color
-                                        ? Border.all(width: 3, color: Colors.black)
-                                        : null,
-                                    boxShadow: isColorTaken(color) && teamColors[i] != color
-                                        ? [
-                                            const BoxShadow(
-                                              color: Colors.grey,
-                                              blurRadius: 2,
-                                            )
-                                          ]
-                                        : null,
+                        Expanded(
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: [
+                                for (Color color in [
+                                  Colors.pink,
+                                  Colors.yellow,
+                                  Colors.blue,
+                                  Colors.orange,
+                                  Colors.green,
+                                  Colors.red
+                                ])
+                                  GestureDetector(
+                                    onTap: () {
+                                      if (!isColorTaken(color) || teamColors[i] == color) {
+                                        handleColorChange(i, color);
+                                      }
+                                    },
+                                    child: Container(
+                                      margin: const EdgeInsets.symmetric(horizontal: 5),
+                                      width: 35,
+                                      height: 35,
+                                      decoration: BoxDecoration(
+                                        color: color,
+                                        shape: BoxShape.circle,
+                                        border: teamColors[i] == color
+                                            ? Border.all(width: 3, color: Colors.black)
+                                            : null,
+                                        boxShadow: isColorTaken(color) && teamColors[i] != color
+                                            ? [
+                                                const BoxShadow(
+                                                  color: Colors.grey,
+                                                  blurRadius: 2,
+                                                )
+                                              ]
+                                            : null,
+                                      ),
+                                    ),
                                   ),
-                                ),
-                              ),
-                          ],
+                              ],
+                            ),
+                          ),
                         ),
-                      ),
+                      ],
                     ),
-                  ],
+                  ),
+                ],
+                Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: ElevatedButton(
+                    onPressed: saveTeams,
+                    child: const Text(
+                      'Save Teams',
+                      style: TextStyle(fontSize: 20),
+                    ),
+                  ),
                 ),
-              ),
-            ],
-            Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: ElevatedButton(
-                onPressed: saveTeams,
-                child: const Text(
-                  'Save Teams',
-                  style: TextStyle(fontSize: 20),
+              ],
+            ),
+          ),
+          Align(
+            alignment: Alignment.bottomLeft,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.pop(context);
+                },
+                child: Image.asset(
+                  'assets/images/house.png',
+                  width: 40,
+                  height: 40,
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
