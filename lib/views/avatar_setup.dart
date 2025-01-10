@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-import 'points_page.dart';
+import 'chatroom_screen.dart';
 //import 'package:eksaminiaia/models/room.dart';
 
 class AvatarSelectionScreen extends StatefulWidget {
@@ -96,10 +96,13 @@ class AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => PointsPage(
+            builder: (context) => ChatroomScreen(
               roomCode: widget.roomCode,
-              //game: widget.Game,
+              //playerName: widget.playerName,
               //team: widget.team,
+              //roomCode: widget.roomCode,
+              playerName: nameController.text,
+              avatarUrl: selectedAvatarUrl!, // Pass avatarUrl properly
             ),
           ),
         );
