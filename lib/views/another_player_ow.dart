@@ -1,22 +1,22 @@
 import 'dart:async';
-import 'pantomime.dart';
+import 'points_page.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class AnotherTeamPlayingScreen extends StatefulWidget {
+class OneWordTeamPlayingScreen extends StatefulWidget {
   final String roomCode;
 
-  const AnotherTeamPlayingScreen({
+  const OneWordTeamPlayingScreen({
     super.key,
     required this.roomCode,
   });
 
   @override
-  AnotherTeamPlayingScreenState createState() =>
-      AnotherTeamPlayingScreenState();
+  OneWordTeamPlayingScreenState createState() =>
+      OneWordTeamPlayingScreenState();
 }
 
-class AnotherTeamPlayingScreenState extends State<AnotherTeamPlayingScreen> {
+class OneWordTeamPlayingScreenState extends State<OneWordTeamPlayingScreen> {
   Timer? timer;
   int timeRemaining = 0;
   String? currentTeamName;
@@ -50,7 +50,7 @@ class AnotherTeamPlayingScreenState extends State<AnotherTeamPlayingScreen> {
       final roomData = roomDoc.data()!;
       final teams = roomData['ourteams'] as Map<String, dynamic>;
 
-      defaultTimerDuration = roomData['t1'] ?? 10;
+      defaultTimerDuration = roomData['t2'] ?? 10;
       timeRemaining = defaultTimerDuration;
 
       teamOrder = teams.keys.toList();
@@ -75,66 +75,34 @@ class AnotherTeamPlayingScreenState extends State<AnotherTeamPlayingScreen> {
     }
   }
 
-Future<void> _initializeTeamAndPlayer() async {
-  debugPrint('Initializing team and player...');
+  Future<void> _initializeTeamAndPlayer() async {
+    debugPrint('Initializing team and player...');
 
-  try {
-    // Fetch the `chosen` field from Firestore
-    final roomDoc = await FirebaseFirestore.instance
-        .collection('Rooms')
-        .doc(widget.roomCode)
-        .get();
-
-    final chosenPlayers = (roomDoc.data()?['chosen'] as List<dynamic>? ?? [])
-        .map((player) => player as Map<String, dynamic>)
-        .toList();
-
-    // Get a list of all players excluding those in the `chosen` list
-    final allEligiblePlayers = allTeamsWithPlayers.values
-        .expand((players) => players)
-        .where((player) => !chosenPlayers.any(
-              (chosen) =>
-                  chosen['name'] == player['name'] &&
-                  chosen['avatar'] == player['avatar'],
-            ))
-        .toList();
-
-    // Check if all eligible players have played
-    if (playedPlayers.length == allEligiblePlayers.length) {
-      debugPrint('All eligible players have played.');
-      _navigateToPantomimeScreen();
+    final allPlayers =
+        allTeamsWithPlayers.values.expand((players) => players).toList();
+    if (playedPlayers.length == allPlayers.length) {
+      debugPrint('All players have played.');
+      _navigateToNextScreen();
       return;
     }
 
-    // Get the current team key
     final currentTeamKey = teamOrder[currentTeamIndex];
     final teamPlayers = allTeamsWithPlayers[currentTeamKey] ?? [];
 
-    // Find available players in the current team who have not yet played
-    final availableTeamPlayers = teamPlayers
-        .where((player) =>
-            !playedPlayers.contains(player['name']) && // Exclude played players
-            !chosenPlayers.any(
-              (chosen) =>
-                  chosen['name'] == player['name'] &&
-                  chosen['avatar'] == player['avatar'],
-            )) // Exclude players in the chosen list
+    final availablePlayers = teamPlayers
+        .where((player) => !playedPlayers.contains(player['name']))
         .toList();
 
-    if (availableTeamPlayers.isEmpty) {
-      // Move to the next team if no players are available in the current team
+    if (availablePlayers.isEmpty) {
       currentTeamIndex = (currentTeamIndex + 1) % teamOrder.length;
       await _initializeTeamAndPlayer();
       return;
     }
 
-    // Select the first available player
-    final selectedPlayer = availableTeamPlayers.first;
+    final selectedPlayer = availablePlayers.first;
 
-    // Add the player to the list of played players
     playedPlayers.add(selectedPlayer['name']);
 
-    // Update the state with the selected player's details
     setState(() {
       currentPlayerName = selectedPlayer['name'];
       currentAvatarUrl = selectedPlayer['avatar'];
@@ -142,17 +110,9 @@ Future<void> _initializeTeamAndPlayer() async {
       timeRemaining = defaultTimerDuration;
     });
 
-    // Start the timer for the current player
+    currentTeamIndex = (currentTeamIndex + 1) % teamOrder.length;
     _startTimer();
-  } catch (e) {
-    debugPrint('Error initializing team and player: $e');
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
-    }
   }
-}
 
   void _startTimer() {
     timer?.cancel();
@@ -173,22 +133,20 @@ Future<void> _initializeTeamAndPlayer() async {
     if (playedPlayers.length ==
         allTeamsWithPlayers.values.expand((players) => players).length) {
       debugPrint('All players have played.');
-      _navigateToPantomimeScreen();
+      _navigateToNextScreen();
       return;
     }
 
-    currentTeamIndex = (currentTeamIndex + 1) % teamOrder.length;
     await _initializeTeamAndPlayer();
   }
 
-  void _navigateToPantomimeScreen() {
-    debugPrint('Navigating to PantomimeScreen...');
+  void _navigateToNextScreen() {
+    debugPrint('Navigating to the next screen...');
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (context) => PantomimeScreen(
+        builder: (context) => PointsPage(
           roomCode: widget.roomCode,
-          team: currentTeamName ?? "Unknown Team",
         ),
       ),
     );
@@ -204,11 +162,11 @@ Future<void> _initializeTeamAndPlayer() async {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('SAY WHAT?'),
-        backgroundColor: Colors.orangeAccent,
+        title: const Text('ONE WORD'),
+        backgroundColor: Colors.greenAccent,
       ),
       body: Container(
-        color: Colors.yellow,
+        color: Colors.green,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -219,7 +177,7 @@ Future<void> _initializeTeamAndPlayer() async {
               style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: Colors.black,
+                color: Colors.white,
               ),
             ),
             const SizedBox(height: 40),
@@ -243,7 +201,7 @@ Future<void> _initializeTeamAndPlayer() async {
               style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w500,
-                color: Colors.black,
+                color: Colors.white,
               ),
             ),
             const SizedBox(height: 40),
@@ -261,7 +219,7 @@ Future<void> _initializeTeamAndPlayer() async {
                   style: const TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                    color: Colors.white,
                   ),
                 ),
               ],

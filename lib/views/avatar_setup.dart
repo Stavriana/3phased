@@ -3,8 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-import 'points_page.dart';
-//import 'package:eksaminiaia/models/room.dart';
+import 'chat_display.dart';
 
 class AvatarSelectionScreen extends StatefulWidget {
   final String roomCode;
@@ -56,62 +55,66 @@ class AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
   }
 
   /// Function to save player data
-  Future<void> savePlayerData() async {
-    if (nameController.text.isEmpty || selectedAvatarUrl == null) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please enter your name and select an avatar')),
-        );
-      }
-      return;
-    }
-
-    try {
-      final teamPath = 'ourteams.${widget.team}.players';
-      final roomDocRef = FirebaseFirestore.instance.collection('Rooms').doc(widget.roomCode);
-
-      // Fetch only the `playersin` field from Firestore
-      final roomDoc = await roomDocRef.get(const GetOptions(
-      source: Source.serverAndCache,
-    ));
-      // Increment playersin count
-      final currentPlayersIn = roomDoc.data()?['playersin'] ?? 0;
-      final updatedPlayersIn = currentPlayersIn + 1;
-
-      await FirebaseFirestore.instance.collection('Rooms').doc(widget.roomCode).update({
-        teamPath: FieldValue.arrayUnion([
-          {'name': nameController.text, 'avatar': selectedAvatarUrl}
-        ]),
-        'playersin': updatedPlayersIn, // Save the incremented value
-      });
-
-      if (!mounted) return;
-
+  /// Function to save player data
+Future<void> savePlayerData() async {
+  if (nameController.text.isEmpty || selectedAvatarUrl == null) {
+    if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Player added successfully')),
+        const SnackBar(content: Text('Please enter your name and select an avatar')),
       );
+    }
+    return;
+  }
 
-      // Navigate to the gameplay screen or next stage
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => PointsPage(
-              roomCode: widget.roomCode,
-              //game: widget.Game,
-              //team: widget.team,
-            ),
+  try {
+    final playerData = {
+      'name': nameController.text,
+      'avatar': selectedAvatarUrl,
+    };
+
+    // Update player data in the `chosen` field
+    await FirebaseFirestore.instance
+        .collection('Rooms')
+        .doc(widget.roomCode)
+        .update({
+      'chosen': FieldValue.arrayUnion([playerData]),
+    });
+
+    // Update player data in the specific team's players list
+    final teamPath = 'ourteams.${widget.team}.players';
+    await FirebaseFirestore.instance
+        .collection('Rooms')
+        .doc(widget.roomCode)
+        .update({
+      teamPath: FieldValue.arrayUnion([playerData]),
+    });
+
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Player added successfully')),
+    );
+
+    // Navigate to the gameplay screen or next stage
+    if (mounted) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => PlayerDisplayScreen(
+            roomCode: widget.roomCode,
+            team: widget.team,
           ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to add player: $e')),
-        );
-      }
+        ),
+      );
+    }
+  } catch (e) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to add player: $e')),
+      );
     }
   }
+}
 
   @override
   Widget build(BuildContext context) {
