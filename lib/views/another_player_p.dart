@@ -1,22 +1,23 @@
 import 'dart:async';
-import 'pantomime.dart';
+import 'one_word.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class AnotherTeamPlayingScreen extends StatefulWidget {
+class PantomimeTeamPlayingScreen extends StatefulWidget {
   final String roomCode;
 
-  const AnotherTeamPlayingScreen({
+  const PantomimeTeamPlayingScreen({
     super.key,
     required this.roomCode,
   });
 
   @override
-  AnotherTeamPlayingScreenState createState() =>
-      AnotherTeamPlayingScreenState();
+  PantomimeTeamPlayingScreenState createState() =>
+      PantomimeTeamPlayingScreenState();
 }
 
-class AnotherTeamPlayingScreenState extends State<AnotherTeamPlayingScreen> {
+class PantomimeTeamPlayingScreenState
+    extends State<PantomimeTeamPlayingScreen> {
   Timer? timer;
   int timeRemaining = 0;
   String? currentTeamName;
@@ -182,11 +183,11 @@ Future<void> _initializeTeamAndPlayer() async {
   }
 
   void _navigateToPantomimeScreen() {
-    debugPrint('Navigating to PantomimeScreen...');
+    debugPrint('Navigating to OneWordScreen...');
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (context) => PantomimeScreen(
+        builder: (context) => OneWordScreen(
           roomCode: widget.roomCode,
           team: currentTeamName ?? "Unknown Team",
         ),
@@ -204,11 +205,11 @@ Future<void> _initializeTeamAndPlayer() async {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('SAY WHAT?'),
+        title: const Text('PANTOMIME'),
         backgroundColor: Colors.orangeAccent,
       ),
       body: Container(
-        color: Colors.yellow,
+        color: Colors.green,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [

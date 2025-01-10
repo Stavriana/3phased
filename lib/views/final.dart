@@ -16,6 +16,20 @@ class ScoreboardScreen extends StatefulWidget {
     required this.game,
   });
 
+  Future<void> _clearChosenData() async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('Rooms')
+          .doc(roomCode)
+          .update({
+        'chosen': FieldValue.delete(), // Clears the chosen field
+      });
+      debugPrint('Chosen data cleared successfully.');
+    } catch (e) {
+      debugPrint('Error clearing chosen data: $e');
+    }
+  }
+
   @override
   State<ScoreboardScreen> createState() => _ScoreboardScreenState();
 }
@@ -64,7 +78,13 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+
+    // Automatically clear chosen data when the screen is built
+    // Automatically clear chosen data when the screen is built
+    WidgetsBinding.instance.addPostFrameCallback((_) => widget._clearChosenData());
+  
     final sortedTeams = widget.game.ourteams.values.toList()
+
       ..sort((a, b) => b.points.compareTo(a.points));
 
     final double screenWidth = MediaQuery.of(context).size.width;
@@ -205,3 +225,4 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
     );
   }
 }
+

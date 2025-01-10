@@ -106,7 +106,6 @@ class GamePlayScreenState extends State<GamePlayScreen> {
       MaterialPageRoute(
         builder: (context) => AnotherTeamPlayingScreen(
           roomCode: widget.roomCode,
-          currentPlayerName: 'YourPlayerNameHere',
         ),
       ),
     );

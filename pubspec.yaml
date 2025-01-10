@@ -77,6 +77,8 @@ flutter:
    - assets/images/done.png
    - assets/images/stop.png
    - assets/images/hourglass.png
+   - assets/images/start.png
+   - assets/images/chat.png
 
   #   - images/a_dot_ham.jpeg
 
