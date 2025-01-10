@@ -3,6 +3,8 @@ import 'package:eksaminiaia/models/room.dart';
 import 'package:eksaminiaia/widgets/first_place.dart';
 import 'package:eksaminiaia/widgets/last_places.dart';
 import 'package:eksaminiaia/views/code_input_view.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class ScoreboardScreen extends StatelessWidget {
   final String roomCode;
   final Game game;
@@ -13,8 +15,25 @@ class ScoreboardScreen extends StatelessWidget {
     required this.game,
   });
 
+  Future<void> _clearChosenData() async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('Rooms')
+          .doc(roomCode)
+          .update({
+        'chosen': FieldValue.delete(), // Clears the chosen field
+      });
+      debugPrint('Chosen data cleared successfully.');
+    } catch (e) {
+      debugPrint('Error clearing chosen data: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Automatically clear chosen data when the screen is built
+    WidgetsBinding.instance.addPostFrameCallback((_) => _clearChosenData());
+
     // Sort teams by points in descending order
     final sortedTeams = game.ourteams.values.toList()
       ..sort((a, b) => b.points.compareTo(a.points));
@@ -159,3 +178,4 @@ class ScoreboardScreen extends StatelessWidget {
     );
   }
 }
+
