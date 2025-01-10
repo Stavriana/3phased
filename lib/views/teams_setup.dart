@@ -140,7 +140,7 @@ class TeamsSetState extends State<TeamsSet> {
 
       log('Saving Teams: $updatedTeams', name: 'TeamsSet');
 
-      // Fetch the current game document to ensure `adminId` and other fields are preserved
+      // Fetch the current game document to ensure adminId and other fields are preserved
       final gameDoc = await FirebaseFirestore.instance.collection('Rooms').doc(widget.roomCode).get();
 
       if (!gameDoc.exists) {

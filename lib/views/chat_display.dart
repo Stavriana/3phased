@@ -2,7 +2,7 @@ import 'say_what.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'chatroom_screen.dart';
-
+import 'code_input_view.dart';
 class PlayerDisplayScreen extends StatelessWidget {
   final String roomCode;
   final String team;
@@ -190,7 +190,10 @@ class PlayerDisplayScreen extends StatelessWidget {
               padding: const EdgeInsets.all(16.0),
               child: GestureDetector(
                 onTap: () {
-                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const CodeInputView()),
+                  );
                 },
                 child: Image.asset(
                   'assets/images/house.png',
