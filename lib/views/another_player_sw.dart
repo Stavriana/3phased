@@ -2,6 +2,7 @@ import 'dart:async';
 import 'pantomime.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'code_input_view.dart';
 
 class AnotherTeamPlayingScreen extends StatefulWidget {
   final String roomCode;
@@ -267,7 +268,12 @@ class AnotherTeamPlayingScreenState extends State<AnotherTeamPlayingScreen> {
               padding: const EdgeInsets.all(16.0),
               child: GestureDetector(
                 onTap: () {
-                  Navigator.pop(context);
+                  Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const CodeInputView(),
+      ),
+    );
                 },
                 child: Image.asset(
                   'assets/images/house.png',
