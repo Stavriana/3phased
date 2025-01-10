@@ -75,84 +75,74 @@ class OneWordTeamPlayingScreenState extends State<OneWordTeamPlayingScreen> {
     }
   }
 
-Future<void> _initializeTeamAndPlayer() async {
-  debugPrint('Initializing team and player...');
+  Future<void> _initializeTeamAndPlayer() async {
+    debugPrint('Initializing team and player...');
 
-  try {
-    // Fetch the `chosen` field from Firestore
-    final roomDoc = await FirebaseFirestore.instance
-        .collection('Rooms')
-        .doc(widget.roomCode)
-        .get();
+    try {
+      final roomDoc = await FirebaseFirestore.instance
+          .collection('Rooms')
+          .doc(widget.roomCode)
+          .get();
 
-    final chosenPlayers = (roomDoc.data()?['chosen'] as List<dynamic>? ?? [])
-        .map((player) => player as Map<String, dynamic>)
-        .toList();
+      final chosenPlayers = (roomDoc.data()?['chosen'] as List<dynamic>? ?? [])
+          .map((player) => player as Map<String, dynamic>)
+          .toList();
 
-    // Get a list of all players excluding those in the `chosen` list
-    final allEligiblePlayers = allTeamsWithPlayers.values
-        .expand((players) => players)
-        .where((player) => !chosenPlayers.any(
-              (chosen) =>
-                  chosen['name'] == player['name'] &&
-                  chosen['avatar'] == player['avatar'],
-            ))
-        .toList();
+      final allEligiblePlayers = allTeamsWithPlayers.values
+          .expand((players) => players)
+          .where((player) => !chosenPlayers.any(
+                (chosen) =>
+                    chosen['name'] == player['name'] &&
+                    chosen['avatar'] == player['avatar'],
+              ))
+          .toList();
 
-    // Check if all eligible players have played
-    if (playedPlayers.length == allEligiblePlayers.length) {
-      debugPrint('All eligible players have played.');
-      _navigateToPantomimeScreen();
-      return;
-    }
+      if (playedPlayers.length == allEligiblePlayers.length) {
+        debugPrint('All eligible players have played.');
+        _navigateToPantomimeScreen();
+        return;
+      }
 
-    // Get the current team key
-    final currentTeamKey = teamOrder[currentTeamIndex];
-    final teamPlayers = allTeamsWithPlayers[currentTeamKey] ?? [];
+      final currentTeamKey = teamOrder[currentTeamIndex];
+      final teamPlayers = allTeamsWithPlayers[currentTeamKey] ?? [];
 
-    // Find available players in the current team who have not yet played
-    final availableTeamPlayers = teamPlayers
-        .where((player) =>
-            !playedPlayers.contains(player['name']) && // Exclude played players
-            !chosenPlayers.any(
-              (chosen) =>
-                  chosen['name'] == player['name'] &&
-                  chosen['avatar'] == player['avatar'],
-            )) // Exclude players in the chosen list
-        .toList();
+      final availableTeamPlayers = teamPlayers
+          .where((player) =>
+              !playedPlayers.contains(player['name']) &&
+              !chosenPlayers.any(
+                (chosen) =>
+                    chosen['name'] == player['name'] &&
+                    chosen['avatar'] == player['avatar'],
+              ))
+          .toList();
 
-    if (availableTeamPlayers.isEmpty) {
-      // Move to the next team if no players are available in the current team
-      currentTeamIndex = (currentTeamIndex + 1) % teamOrder.length;
-      await _initializeTeamAndPlayer();
-      return;
-    }
+      if (availableTeamPlayers.isEmpty) {
+        currentTeamIndex = (currentTeamIndex + 1) % teamOrder.length;
+        await _initializeTeamAndPlayer();
+        return;
+      }
 
-    // Select the first available player
-    final selectedPlayer = availableTeamPlayers.first;
+      final selectedPlayer = availableTeamPlayers.first;
 
-    // Add the player to the list of played players
-    playedPlayers.add(selectedPlayer['name']);
+      playedPlayers.add(selectedPlayer['name']);
 
-    // Update the state with the selected player's details
-    setState(() {
-      currentPlayerName = selectedPlayer['name'];
-      currentAvatarUrl = selectedPlayer['avatar'];
-      currentTeamName = currentTeamKey;
-      timeRemaining = defaultTimerDuration;
-    });
+      setState(() {
+        currentPlayerName = selectedPlayer['name'];
+        currentAvatarUrl = selectedPlayer['avatar'];
+        currentTeamName = currentTeamKey;
+        timeRemaining = defaultTimerDuration;
+      });
 
-    // Start the timer for the current player
-    _startTimer();
-  } catch (e) {
-    debugPrint('Error initializing team and player: $e');
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
+      _startTimer();
+    } catch (e) {
+      debugPrint('Error initializing team and player: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
     }
   }
-}
 
   void _startTimer() {
     timer?.cancel();
@@ -206,67 +196,87 @@ Future<void> _initializeTeamAndPlayer() async {
         title: const Text('ONE WORD'),
         backgroundColor: Colors.orangeAccent,
       ),
-      body: Container(
-        color: Colors.blue,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              currentTeamName != null
-                  ? '$currentTeamName is Playing'
-                  : 'Loading Team...',
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
-            ),
-            const SizedBox(height: 40),
-            CircleAvatar(
-              backgroundImage: currentAvatarUrl != null
-                  ? NetworkImage(currentAvatarUrl!)
-                  : null,
-              backgroundColor: currentAvatarUrl == null ? Colors.grey : null,
-              radius: 80,
-              child: currentAvatarUrl == null
-                  ? const Icon(
-                      Icons.person,
-                      size: 80,
-                      color: Colors.white,
-                    )
-                  : null,
-            ),
-            const SizedBox(height: 20),
-            Text(
-              currentPlayerName ?? 'Loading Player...',
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w500,
-                color: Colors.black,
-              ),
-            ),
-            const SizedBox(height: 40),
-            Row(
+      body: Stack(
+        children: [
+          Container(
+            color: Colors.blue,
+            child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Image.asset(
-                  'assets/images/hourglass.png',
-                  width: 50,
-                  height: 50,
-                ),
-                const SizedBox(width: 10),
                 Text(
-                  '00:${timeRemaining.toString().padLeft(2, '0')}',
+                  currentTeamName != null
+                      ? '$currentTeamName is Playing'
+                      : 'Loading Team...',
                   style: const TextStyle(
-                    fontSize: 32,
+                    fontSize: 24,
                     fontWeight: FontWeight.bold,
                     color: Colors.black,
                   ),
                 ),
+                const SizedBox(height: 40),
+                CircleAvatar(
+                  backgroundImage: currentAvatarUrl != null
+                      ? NetworkImage(currentAvatarUrl!)
+                      : null,
+                  backgroundColor: currentAvatarUrl == null ? Colors.grey : null,
+                  radius: 80,
+                  child: currentAvatarUrl == null
+                      ? const Icon(
+                          Icons.person,
+                          size: 80,
+                          color: Colors.white,
+                        )
+                      : null,
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  currentPlayerName ?? 'Loading Player...',
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black,
+                  ),
+                ),
+                const SizedBox(height: 40),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image.asset(
+                      'assets/images/hourglass.png',
+                      width: 50,
+                      height: 50,
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      '00:${timeRemaining.toString().padLeft(2, '0')}',
+                      style: const TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
-          ],
-        ),
+          ),
+          Align(
+            alignment: Alignment.bottomLeft,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.pop(context);
+                },
+                child: Image.asset(
+                  'assets/images/house.png',
+                  width: 40,
+                  height: 40,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

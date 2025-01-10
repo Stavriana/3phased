@@ -1,3 +1,4 @@
+import 'package:eksaminiaia/views/rules.dart';
 import 'package:eksaminiaia/views/team_words.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart'; // For GetX state management
@@ -236,12 +237,12 @@ class _CodeInputViewState extends State<CodeInputView> {
           Align(
             alignment: Alignment.bottomLeft,
             child: Padding(
-              padding: const EdgeInsets.all(16.0),
+               padding: const EdgeInsets.all(16.0),
               child: GestureDetector(
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const CodeInputView()),
+                    MaterialPageRoute(builder: (context) => const RulesPageApp()),
                   );
                 },
                 child: Image.asset(
