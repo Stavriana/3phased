@@ -2,13 +2,15 @@ import 'package:get/get.dart';
 import 'package:eksaminiaia/models/room.dart';
 import 'package:eksaminiaia/repositories/updateroom_repository.dart';
 import 'dart:developer';
+//import 'package:firebase_auth/firebase_auth.dart';
 
 class UpdateRoomController extends GetxController {
   final UpdateRoomRepository repository;
 
   UpdateRoomController({required this.repository});
-
+  
   // Reactive variables
+  var adminId = ''.obs; // Add adminId as a rvariableeactive 
   var numOfTeams = 2.obs;
   var numOfPlayers = 4.obs;
   var numOfWords = 3.obs;
@@ -16,6 +18,17 @@ class UpdateRoomController extends GetxController {
   var t2 = 0.obs; // PANTOMIME
   var t3 = 0.obs; // ONE WORD
   var ourteams = <String, Team>{}.obs;
+  
+  void updateGame(Game game) {
+    numOfTeams.value = game.numofteams;
+    numOfPlayers.value = game.numofplayers;
+    numOfWords.value = game.numofwords;
+    t1.value = game.t1;
+    t2.value = game.t2;
+    t3.value = game.t3;
+    ourteams.clear();
+    ourteams.addAll(game.ourteams);
+  }
 
   // Save room
   Future<void> saveRoom({
@@ -26,6 +39,7 @@ class UpdateRoomController extends GetxController {
     required int t1,
     required int t2,
     required int t3,
+    required String admin,
   }) async {
     try {
       log('Preparing to save room. Our Teams: ${ourteams.toString()}', name: 'UpdateRoomController');
@@ -38,7 +52,8 @@ class UpdateRoomController extends GetxController {
         t1: t1,
         t2: t2,
         t3: t3,
-        ourteams: Map<String, Team>.from(ourteams), // Convert obs map to a regular map
+        ourteams: Map<String, Team>.from(ourteams),
+        adminId: admin, // Pass adminId
       );
 
       await repository.saveRoom(game);
@@ -59,6 +74,7 @@ class UpdateRoomController extends GetxController {
     required int t1,
     required int t2,
     required int t3,
+    required String admin, // Add admin as a required parameter
   }) async {
     try {
       log('Preparing to update room. Our Teams: ${ourteams.toString()}', name: 'UpdateRoomController');
@@ -71,7 +87,8 @@ class UpdateRoomController extends GetxController {
         t1: t1,
         t2: t2,
         t3: t3,
-        ourteams: Map<String, Team>.from(ourteams), // Convert obs map to a regular map
+        ourteams: Map<String, Team>.from(ourteams),
+        adminId: admin, // Pass adminId here as well
       );
 
       await repository.updateRoom(game);

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart'; // For GetX state management
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'set_it_up_page.dart'; // Import SetItUpPage for room creation
+import 'package:firebase_auth/firebase_auth.dart';
 
 class CodeInputView extends StatefulWidget {
   const CodeInputView({super.key});
@@ -15,37 +16,7 @@ class _CodeInputViewState extends State<CodeInputView> {
   final TextEditingController _codeController = TextEditingController();
   bool _isCodeValid = true;
 
-  /// Function to check if the entered code exists in Firestore
-  Future<bool> _checkCodeExists(String code) async {
-    try {
-      final doc = await FirebaseFirestore.instance.collection('Rooms').doc(code).get();
-      return doc.exists;
-    } catch (e) {
-      debugPrint('Error checking code existence: $e');
-      return false;
-    }
-  }
-
-  /// Function to fetch room data from Firestore
-  Future<Map<String, dynamic>?> _fetchRoomData(String roomCode) async {
-    try {
-      final docSnapshot = await FirebaseFirestore.instance.collection('Rooms').doc(roomCode).get();
-
-      if (!docSnapshot.exists) {
-        debugPrint('Room not found for code: $roomCode');
-        return null;
-      }
-
-      final data = docSnapshot.data();
-      debugPrint('Room data: $data'); // Log the raw data for debugging
-      return data;
-    } catch (e) {
-      debugPrint('Error fetching room data: $e');
-      return null;
-    }
-  }
-
-  /// Function to join a game room
+  /// Function to join a game
   void _joinGame(BuildContext context) async {
     final enteredCode = _codeController.text.trim().toUpperCase();
 
@@ -60,19 +31,29 @@ class _CodeInputViewState extends State<CodeInputView> {
       return;
     }
 
-    // Check if the room code exists
-    final codeExists = await _checkCodeExists(enteredCode);
+    try {
+      // Fetch the Firestore document for the entered room code
+      final docSnapshot = await FirebaseFirestore.instance
+          .collection('Rooms')
+          .doc(enteredCode)
+          .get();
 
-    if (!mounted) return;
+      // Check if the document exists
+      if (!docSnapshot.exists) {
+        Get.snackbar(
+          'Error',
+          'The room code is invalid or does not exist.',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+        return;
+      }
 
-    if (codeExists) {
-      // Fetch room data before navigating
-      final roomData = await _fetchRoomData(enteredCode);
+      // Retrieve the document data
+      final roomData = docSnapshot.data();
 
-      if (roomData != null) {
-        // Navigate to PointsPage with the room code
-        Get.to(() => TeamWordsScreen(roomCode: enteredCode));
-      } else {
+      if (roomData == null) {
         Get.snackbar(
           'Error',
           'Failed to load room data.',
@@ -80,11 +61,32 @@ class _CodeInputViewState extends State<CodeInputView> {
           backgroundColor: Colors.red,
           colorText: Colors.white,
         );
+        return;
       }
-    } else {
+
+      // Extract playersIn and numOfPlayers values
+      final int playersIn = roomData['playersin'] ?? 0; // Default to 0 if not found
+      final int numOfPlayers = roomData['numofplayers'] ?? 0; // Default to 0 if not found
+
+      // Check if the room is full
+      if (playersIn >= numOfPlayers) {
+        Get.snackbar(
+          'Room Full',
+          'The room is already full. Please try another room.',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.orange,
+          colorText: Colors.white,
+        );
+        return;
+      }
+
+      // If the room is not full, navigate to the next screen
+      Get.to(() => TeamWordsScreen(roomCode: enteredCode));
+    } catch (e) {
+      // Handle errors and show an appropriate message
       Get.snackbar(
         'Error',
-        'The room code is invalid or does not exist.',
+        'An error occurred while joining the room. Please try again later.',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red,
         colorText: Colors.white,
@@ -92,26 +94,50 @@ class _CodeInputViewState extends State<CodeInputView> {
     }
   }
 
-  /// Function to create a new room
-void _createRoom(BuildContext context) async {
+  void _createRoom(BuildContext context) async {
   try {
-    // Generate a random 4-character room code
+    // Fetch current user
+    final currentUser = FirebaseAuth.instance.currentUser;
+
+    if (currentUser == null) {
+      debugPrint('No user is signed in!');
+      Get.snackbar(
+        'Sign-In Required',
+        'You must sign in to create a room.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+      return;
+    }
+
+    final userUid = currentUser.uid;
+    debugPrint('Current User UID: $userUid');
+
+    // Generate a random room code
     final roomCode = _generateRandomRoomCode();
 
-    // Add the room to Firestore with default fields
+    // Save room data to Firestore
     await FirebaseFirestore.instance.collection('Rooms').doc(roomCode).set({
-      'ourteams': {}, // Initialize with an empty 'ourteams' field
-      'words': [], // Initialize with an empty array for words
-      'numofwords': 5, // Example: default number of words per player
+      'adminId': userUid, // Pass the current user UID as adminId
+      'id': roomCode,
+      'ourteams': {}, // Initialize teams
+      'words': [], // Initialize words
+      'numofwords': 5, // Default number of words
+      'numofplayers': 4, // Example default
+      'numofteams': 2,  // Example default
     });
 
-    if (!mounted) return;
+    // Debug log to verify
+    final savedDoc = await FirebaseFirestore.instance.collection('Rooms').doc(roomCode).get();
+    debugPrint('Room created successfully. adminId: ${savedDoc['adminId']}');
 
-    // Navigate to SetItUpPage with the room code
-    Get.to(() => SetItUpPage(roomCode: roomCode));
+    // Navigate to SetItUpPage
+    if (mounted) {
+      Get.to(() => SetItUpPage(roomCode: roomCode));
+    }
   } catch (e) {
     debugPrint('Error creating room: $e');
-
     Get.snackbar(
       'Error',
       'Failed to create room. Please try again later.',
@@ -120,15 +146,19 @@ void _createRoom(BuildContext context) async {
       colorText: Colors.white,
     );
   }
-}
+ }
+
 
   /// Function to generate a random 4-character room code
   String _generateRandomRoomCode() {
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     return String.fromCharCodes(
-      Iterable.generate(4, (_) => characters.codeUnitAt(
-        DateTime.now().millisecondsSinceEpoch % characters.length,
-      )),
+      Iterable.generate(
+        4,
+        (_) => characters.codeUnitAt(
+          DateTime.now().millisecondsSinceEpoch % characters.length,
+        ),
+      ),
     );
   }
 
@@ -146,7 +176,6 @@ void _createRoom(BuildContext context) async {
               'JOIN A GAME',
               style: TextStyle(
                 fontSize: 32,
-                fontFamily: 'Rubik',
                 fontWeight: FontWeight.bold,
                 color: Colors.black,
               ),
@@ -156,7 +185,6 @@ void _createRoom(BuildContext context) async {
               'Insert room code:',
               style: TextStyle(
                 fontSize: 18,
-                fontFamily: 'Rubik',
                 fontWeight: FontWeight.bold,
                 color: Colors.black,
               ),
@@ -179,18 +207,16 @@ void _createRoom(BuildContext context) async {
                         hintStyle: TextStyle(
                           color: Colors.black54,
                           fontSize: 16,
-                          fontFamily: 'Rubik',
                         ),
                         border: InputBorder.none,
                       ),
                       style: const TextStyle(
                         color: Colors.black,
                         fontSize: 16,
-                        fontFamily: 'Rubik',
                       ),
                       onChanged: (_) {
                         setState(() {
-                          _isCodeValid = true; // Reset validity on text change
+                          _isCodeValid = true;
                         });
                       },
                     ),
@@ -198,7 +224,7 @@ void _createRoom(BuildContext context) async {
                 ),
                 const SizedBox(width: 10),
                 GestureDetector(
-                  onTap: () => _joinGame(context), // Join game functionality
+                  onTap: () => _joinGame(context),
                   child: Container(
                     width: 40,
                     height: 40,
@@ -219,7 +245,7 @@ void _createRoom(BuildContext context) async {
             const SizedBox(height: 40),
             Center(
               child: GestureDetector(
-                onTap: () => _createRoom(context), // Create room functionality
+                onTap: () => _createRoom(context),
                 child: const CreateRoomButton(),
               ),
             ),
@@ -230,7 +256,7 @@ void _createRoom(BuildContext context) async {
   }
 }
 
-/// CreateRoomButton widget for the "Create Room" button
+/// CreateRoomButton widget
 class CreateRoomButton extends StatelessWidget {
   const CreateRoomButton({super.key});
 
@@ -244,7 +270,7 @@ class CreateRoomButton extends StatelessWidget {
         children: [
           Positioned.fill(
             child: Image.asset(
-              'assets/images/button_image.png', // Your button image asset here
+              'assets/images/button_image.png',
               fit: BoxFit.cover,
             ),
           ),
@@ -257,7 +283,6 @@ class CreateRoomButton extends StatelessWidget {
                 color: Colors.black,
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                fontFamily: 'Rubik',
                 height: 1.2,
               ),
             ),

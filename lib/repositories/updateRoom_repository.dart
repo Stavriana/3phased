@@ -49,8 +49,20 @@ class UpdateRoomRepository {
         throw Exception('Room with code $roomCode does not exist.');
       }
 
+      final data = doc.data();
+      if (data == null) {
+        log('Room data is null for code $roomCode.', name: 'UpdateRoomRepository');
+        throw Exception('Room data is null for code $roomCode.');
+      }
+
       log('Fetched Game from Firestore: ${doc.data()}', name: 'UpdateRoomRepository');
-      return Game.fromFirestore(doc.id, doc.data()!);
+
+      // Ensure adminId is fetched properly
+      if (data['adminId'] == null) {
+        log('Admin ID is null for room code $roomCode.', name: 'UpdateRoomRepository');
+      }
+
+      return Game.fromFirestore(doc.id, data);
     } catch (e) {
       log('Error fetching room: $e', name: 'UpdateRoomRepository', level: 1000);
       throw Exception('Failed to fetch room: $e');

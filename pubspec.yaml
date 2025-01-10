@@ -42,6 +42,7 @@ dependencies:
   logger: ^1.4.0
   firebase_storage: ^12.3.7
   image_picker: ^0.8.7
+  just_audio: ^0.9.0
   #firebase_auth: ^4..0
 
 dev_dependencies:
