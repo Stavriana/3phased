@@ -88,11 +88,11 @@ class OneWordScreenState extends State<OneWordScreen> {
 
   Future<void> _onDone() async {
     setState(() {
-      points += 10;
+      points += 2;
     });
 
     await FirebaseFirestore.instance.collection('Rooms').doc(widget.roomCode).update({
-      'ourteams.${widget.team}.points': FieldValue.increment(10),
+      'ourteams.${widget.team}.points': FieldValue.increment(2),
     });
 
     _getNextWord();
@@ -123,7 +123,7 @@ class OneWordScreenState extends State<OneWordScreen> {
       body: Stack(
         children: [
           Container(
-            color: Colors.green,  // Changed background color to green
+            color: Colors.blue,  // Changed background color to green
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [

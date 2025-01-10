@@ -88,11 +88,11 @@ class PantomimeScreenState extends State<PantomimeScreen> {
 
   Future<void> _onDone() async {
     setState(() {
-      points += 10;
+      points += 2;
     });
 
     await FirebaseFirestore.instance.collection('Rooms').doc(widget.roomCode).update({
-      'ourteams.${widget.team}.points': FieldValue.increment(10),
+      'ourteams.${widget.team}.points': FieldValue.increment(2),
     });
 
     _getNextWord();
@@ -123,7 +123,7 @@ class PantomimeScreenState extends State<PantomimeScreen> {
       body: Stack(
         children: [
           Container(
-            color: Colors.blue,  // Changed background color to blue
+            color: Colors.green,  // Changed background color to blue
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [

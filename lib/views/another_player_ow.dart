@@ -51,7 +51,7 @@ class OneWordTeamPlayingScreenState extends State<OneWordTeamPlayingScreen> {
       final roomData = roomDoc.data()!;
       final teams = roomData['ourteams'] as Map<String, dynamic>;
 
-      defaultTimerDuration = roomData['t1'] ?? 10;
+      defaultTimerDuration = roomData['t3'] ?? 10;
       timeRemaining = defaultTimerDuration;
 
       teamOrder = teams.keys.toList();
@@ -173,7 +173,7 @@ class OneWordTeamPlayingScreenState extends State<OneWordTeamPlayingScreen> {
   }
 
   void _navigateToPantomimeScreen() {
-    debugPrint('Navigating to Points Page...');
+    debugPrint('Navigating to OneWordScreen...');
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(

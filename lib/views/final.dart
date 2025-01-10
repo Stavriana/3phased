@@ -5,7 +5,7 @@ import 'package:eksaminiaia/widgets/last_places.dart';
 import 'package:eksaminiaia/views/code_input_view.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:just_audio/just_audio.dart';
-
+import 'rules.dart';
 class ScoreboardScreen extends StatefulWidget {
   final String roomCode;
   final Game game;
@@ -205,7 +205,7 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const CodeInputView()),
+                      MaterialPageRoute(builder: (context) => const RulesPageApp()),
                     );
                   },
                   child: const Text(

@@ -88,11 +88,11 @@ class GamePlayScreenState extends State<GamePlayScreen> {
 
   Future<void> _onDone() async {
     setState(() {
-      points += 10;
+      points += 2;
     });
 
     await FirebaseFirestore.instance.collection('Rooms').doc(widget.roomCode).update({
-      'ourteams.${widget.team}.points': FieldValue.increment(10),
+      'ourteams.${widget.team}.points': FieldValue.increment(2),
     });
 
     _getNextWord();
