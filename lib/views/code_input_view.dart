@@ -19,12 +19,27 @@ class _CodeInputViewState extends State<CodeInputView> {
 
   /// Function to join a game
   void _joinGame(BuildContext context) async {
-    final enteredCode = _codeController.text.trim().toUpperCase();
+  final enteredCode = _codeController.text.trim().toUpperCase();
 
-    if (enteredCode.isEmpty) {
+  if (enteredCode.isEmpty) {
+    Get.snackbar(
+      'Error',
+      'Please enter a valid room code.',
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: Colors.red,
+      colorText: Colors.white,
+    );
+    return;
+  }
+
+  try {
+    final docRef = FirebaseFirestore.instance.collection('Rooms').doc(enteredCode);
+    final docSnapshot = await docRef.get();
+
+    if (!docSnapshot.exists) {
       Get.snackbar(
         'Error',
-        'Please enter a valid room code.',
+        'The room code is invalid or does not exist.',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red,
         colorText: Colors.white,
@@ -32,61 +47,51 @@ class _CodeInputViewState extends State<CodeInputView> {
       return;
     }
 
-    try {
-      final docSnapshot = await FirebaseFirestore.instance
-          .collection('Rooms')
-          .doc(enteredCode)
-          .get();
+    final roomData = docSnapshot.data();
 
-      if (!docSnapshot.exists) {
-        Get.snackbar(
-          'Error',
-          'The room code is invalid or does not exist.',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
-        return;
-      }
-
-      final roomData = docSnapshot.data();
-
-      if (roomData == null) {
-        Get.snackbar(
-          'Error',
-          'Failed to load room data.',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
-        return;
-      }
-
-      final int playersIn = roomData['playersin'] ?? 0;
-      final int numOfPlayers = roomData['numofplayers'] ?? 0;
-
-      if (playersIn >= numOfPlayers) {
-        Get.snackbar(
-          'Room Full',
-          'The room is already full. Please try another room.',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.orange,
-          colorText: Colors.white,
-        );
-        return;
-      }
-
-      Get.to(() => TeamWordsScreen(roomCode: enteredCode));
-    } catch (e) {
+    if (roomData == null) {
       Get.snackbar(
         'Error',
-        'An error occurred while joining the room. Please try again later.',
+        'Failed to load room data.',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red,
         colorText: Colors.white,
       );
+      return;
     }
+
+    final int playersIn = roomData['playersin'] ?? 0;
+    final int numOfPlayers = roomData['numofplayers'] ?? 0;
+
+    if (playersIn >= numOfPlayers-1) {
+      Get.snackbar(
+        'Room Full',
+        'The room is already full. Please try another room.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.orange,
+        colorText: Colors.white,
+      );
+      return;
+    }
+
+    // Increment the playersIn count in the Firestore document
+    await docRef.update({
+      'playersin': FieldValue.increment(1),
+    });
+
+    // Navigate to TeamWordsScreen
+    Get.to(() => TeamWordsScreen(roomCode: enteredCode));
+  } catch (e) {
+    Get.snackbar(
+      'Error',
+      'An error occurred while joining the room. Please try again later.',
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: Colors.red,
+      colorText: Colors.white,
+    );
   }
+ }
+
 
   void _createRoom(BuildContext context) async {
     try {

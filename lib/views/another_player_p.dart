@@ -52,7 +52,7 @@ class PantomimeTeamPlayingScreenState
       final roomData = roomDoc.data()!;
       final teams = roomData['ourteams'] as Map<String, dynamic>;
 
-      defaultTimerDuration = roomData['t1'] ?? 10;
+      defaultTimerDuration = roomData['t2'] ?? 10;
       timeRemaining = defaultTimerDuration;
 
       teamOrder = teams.keys.toList();
@@ -174,7 +174,7 @@ class PantomimeTeamPlayingScreenState
   }
 
   void _navigateToPantomimeScreen() {
-    debugPrint('Navigating to OneWordScreen...');
+    debugPrint('Navigating to PantomimeScreen...');
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
