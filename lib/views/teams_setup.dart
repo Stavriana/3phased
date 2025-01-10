@@ -184,10 +184,12 @@ class TeamsSetState extends State<TeamsSet> {
   }
 
   String _colorToHex(Color color) {
-    return '#${color.red.toRadixString(16).padLeft(2, '0').toUpperCase()}'
-        '${color.green.toRadixString(16).padLeft(2, '0').toUpperCase()}'
-        '${color.blue.toRadixString(16).padLeft(2, '0').toUpperCase()}';
-  }
+  return '#${color.r.toInt().toRadixString(16).padLeft(2, '0').toUpperCase()}'
+      '${color.g.toInt().toRadixString(16).padLeft(2, '0').toUpperCase()}'
+      '${color.b.toInt().toRadixString(16).padLeft(2, '0').toUpperCase()}';
+}
+
+
 
   Color _hexToColor(String hex) {
     return Color(int.parse(hex.replaceFirst('#', '0xFF')));
@@ -273,12 +275,12 @@ class TeamsSetState extends State<TeamsSet> {
                             child: Row(
                               children: [
                                 for (Color color in [
-                                  Colors.pink,
-                                  Colors.yellow,
-                                  Colors.blue,
-                                  Colors.orange,
-                                  Colors.green,
-                                  Colors.red
+                                  const Color.fromARGB(255, 255, 192, 203), // Pink
+                                  const Color.fromARGB(255, 255, 255, 0),   // Yellow
+                                  const Color.fromARGB(255, 0, 0, 255),     // Blue
+                                  const Color.fromARGB(255, 255, 165, 0),   // Orange
+                                  const Color.fromARGB(255, 0, 128, 0),     // Green
+                                  const Color.fromARGB(255, 255, 0, 0)      // Red
                                 ])
                                   GestureDetector(
                                     onTap: () {
