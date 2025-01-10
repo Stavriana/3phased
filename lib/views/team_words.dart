@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'avatar_setup.dart';
+import 'code_input_view.dart';
 
 class TeamWordsScreen extends StatefulWidget {
   final String roomCode;
@@ -154,7 +155,10 @@ class TeamWordsScreenState extends State<TeamWordsScreen> {
               padding: const EdgeInsets.all(16.0),
               child: GestureDetector(
                 onTap: () {
-                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const CodeInputView()),
+                  );
                 },
                 child: Image.asset(
                   'assets/images/house.png',

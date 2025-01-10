@@ -4,8 +4,9 @@ import 'package:eksaminiaia/controllers.dart/updateroom_controller.dart';
 import 'package:eksaminiaia/repositories/updateroom_repository.dart';
 import 'package:eksaminiaia/widgets/custom_counter_widget.dart';
 import 'package:eksaminiaia/widgets/custom_slider_widget.dart';
-import 'teams_setup.dart'; // Ensure this file path is correct
-
+//import 'teams_setup.dart'; // Ensure this file path is correct
+import 'teams_setup.dart';
+import 'code_input_view.dart';
 class SetItUpPage extends StatelessWidget {
   final String roomCode;
 
@@ -60,7 +61,7 @@ class SetItUpPage extends StatelessWidget {
                         CustomCounterWidget(
                           labelText: "WORDS PER PLAYER",
                           minValue: 3,
-                          maxValue: 10,
+                          maxValue: 4,
                           initialValue: controller.numOfWords.value,
                           onValueChanged: (value) {
                             controller.numOfWords.value = value;
@@ -134,7 +135,8 @@ class SetItUpPage extends StatelessWidget {
                               );
 
                               // Navigate to TeamsSet page
-                              Get.to(() => TeamsSet(roomCode: roomCode));
+                              Get.to(() => TeamWordsScreen(roomCode: roomCode));
+
 
                               // Show success message
                               Get.snackbar(
@@ -181,8 +183,11 @@ class SetItUpPage extends StatelessWidget {
                 padding: const EdgeInsets.all(16.0),
                 child: GestureDetector(
                   onTap: () {
-                    Navigator.pop(context);
-                  },
+                   Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const CodeInputView()),
+                  );
+                },
                   child: Image.asset(
                     'assets/images/house.png',
                     width: 40,

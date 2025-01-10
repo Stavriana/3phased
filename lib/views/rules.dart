@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
-//import '../pages/join_create.dart'; // Import the Join_create widget
-//import 'package:flutter_application_1/pages/join_create.dart';
 
-void main() {
-  runApp(const RulesPageApp());
-}
+import 'code_input_view.dart';
+
 
 
 class RulesPageApp extends StatelessWidget {
@@ -160,10 +157,10 @@ class RulesPageApp extends StatelessWidget {
               // Skip Button
               GestureDetector(
                 onTap: () {
-                  //Navigator.pushReplacement(
-                 //   context,
-                 //   MaterialPageRoute(builder: (context) => const JoinCreateD()),
-                  //);
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const CodeInputView()),
+                  );
                 },
                 child: Container(
                   width: MediaQuery.of(context).size.width * 0.6, // Same width as RULES
