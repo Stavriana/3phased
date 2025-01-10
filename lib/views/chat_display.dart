@@ -1,8 +1,10 @@
 import 'say_what.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'chatroom_screen.dart';
 import 'code_input_view.dart';
+
 class PlayerDisplayScreen extends StatelessWidget {
   final String roomCode;
   final String team;
@@ -46,7 +48,7 @@ class PlayerDisplayScreen extends StatelessWidget {
                         return const Center(child: Text('No data found'));
                       }
 
-                      final data = snapshot.data?.data() as Map<String, dynamic>?; // Removed unnecessary cast
+                      final data = snapshot.data?.data() as Map<String, dynamic>?;
                       if (data == null || !data.containsKey('ourteams')) {
                         return const Center(child: Text('No teams available'));
                       }
@@ -106,16 +108,77 @@ class PlayerDisplayScreen extends StatelessWidget {
                   children: [
                     const Spacer(),
                     GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => GamePlayScreen(
-                              roomCode: roomCode,
-                              team: team,
-                            ),
-                          ),
-                        );
+                      onTap: () async {
+                        try {
+                          final roomDataSnapshot = await FirebaseFirestore.instance
+                              .collection('Rooms')
+                              .doc(roomCode)
+                              .get();
+
+                          final roomData = roomDataSnapshot.data();
+                          if (roomData == null || !roomData.containsKey('adminId')) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Room data is missing or invalid.'),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
+                            return;
+                          }
+
+                          final currentUser = FirebaseAuth.instance.currentUser;
+                          if (currentUser == null) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('User not authenticated.'),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
+                            return;
+                          }
+
+                          if (roomData['adminId'] != currentUser.uid) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Only the admin can proceed to the next screen.',
+                                  ),
+                                  backgroundColor: Colors.orange,
+                                ),
+                              );
+                            }
+                            return;
+                          }
+
+                          // If admin, navigate to GamePlayScreen
+                          if (context.mounted) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => GamePlayScreen(
+                                  roomCode: roomCode,
+                                  team: team,
+                                ),
+                              ),
+                            );
+                          }
+                        } catch (e) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'An error occurred. Please try again later.',
+                                ),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
+                        }
                       },
                       child: Image.asset(
                         'assets/images/start.png',
