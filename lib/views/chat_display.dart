@@ -12,137 +12,157 @@ class PlayerDisplayScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Column(
+      body: Stack(
         children: [
-          SizedBox(height: 20),
-          Container(
-            width: double.infinity,
-            color: Colors.orange,
-            padding: EdgeInsets.all(16.0),
-            child: Text(
-              'Room Code: $roomCode',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.black,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
+          Column(
+            children: [
+              SizedBox(height: 20),
+              Container(
+                width: double.infinity,
+                color: Colors.orange,
+                padding: EdgeInsets.all(16.0),
+                child: Text(
+                  'Room Code: $roomCode',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
-            ),
-          ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: FutureBuilder<DocumentSnapshot>(
-                future: FirebaseFirestore.instance.collection('Rooms').doc(roomCode).get(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Center(child: CircularProgressIndicator());
-                  }
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: FutureBuilder<DocumentSnapshot>(
+                    future: FirebaseFirestore.instance.collection('Rooms').doc(roomCode).get(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Center(child: CircularProgressIndicator());
+                      }
 
-                  if (!snapshot.hasData || snapshot.data == null) {
-                    return Center(child: Text('No data found'));
-                  }
+                      if (!snapshot.hasData || snapshot.data == null) {
+                        return Center(child: Text('No data found'));
+                      }
 
-                  final data = snapshot.data?.data() as Map<String, dynamic>?;
-                  if (data == null || !data.containsKey('ourteams')) {
-                    return Center(child: Text('No teams available'));
-                  }
+                      final data = snapshot.data?.data() as Map<String, dynamic>?;
+                      if (data == null || !data.containsKey('ourteams')) {
+                        return Center(child: Text('No teams available'));
+                      }
 
-                  var teams = data['ourteams'] as Map<String, dynamic>;
-                  List<Map<String, dynamic>> allPlayers = [];
+                      var teams = data['ourteams'] as Map<String, dynamic>;
+                      List<Map<String, dynamic>> allPlayers = [];
 
-                  teams.forEach((teamKey, teamData) {
-                    final players = teamData['players'] as List<dynamic>?;
-                    if (players != null) {
-                      allPlayers.addAll(players.cast<Map<String, dynamic>>());
-                    }
-                  });
+                      teams.forEach((teamKey, teamData) {
+                        final players = teamData['players'] as List<dynamic>?;
+                        if (players != null) {
+                          allPlayers.addAll(players.cast<Map<String, dynamic>>());
+                        }
+                      });
 
-                  return GridView.builder(
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 3, // Reduce to 3 to allow more space for each avatar
-                      crossAxisSpacing: 16.0, // Space between columns
-                      mainAxisSpacing: 16.0, // Space between rows
-                      childAspectRatio: 0.8, // Adjust to allow full display of avatars and names
-                    ),
-                    itemCount: allPlayers.length,
-                    itemBuilder: (context, index) {
-                      final player = allPlayers[index];
-                      return Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          CircleAvatar(
-                            backgroundImage: NetworkImage(player['avatar'] ?? ''),
-                            radius: 50, // Larger radius for better visibility
-                            onBackgroundImageError: (error, stackTrace) =>
-                                Icon(Icons.error, color: Colors.red),
-                          ),
-                          SizedBox(height: 5),
-                          Text(
-                            player['name'] ?? 'Unknown',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16, // Larger font for readability
-                            ),
-                            textAlign: TextAlign.center,
-                            maxLines: 2, // Allow up to 2 lines for names
-                            overflow: TextOverflow.ellipsis, // Truncate if necessary
-                          ),
-                        ],
+                      return GridView.builder(
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3, // Reduce to 3 to allow more space for each avatar
+                          crossAxisSpacing: 16.0, // Space between columns
+                          mainAxisSpacing: 16.0, // Space between rows
+                          childAspectRatio: 0.8, // Adjust to allow full display of avatars and names
+                        ),
+                        itemCount: allPlayers.length,
+                        itemBuilder: (context, index) {
+                          final player = allPlayers[index];
+                          return Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              CircleAvatar(
+                                backgroundImage: NetworkImage(player['avatar'] ?? ''),
+                                radius: 50, // Larger radius for better visibility
+                                onBackgroundImageError: (error, stackTrace) =>
+                                    Icon(Icons.error, color: Colors.red),
+                              ),
+                              SizedBox(height: 5),
+                              Text(
+                                player['name'] ?? 'Unknown',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16, // Larger font for readability
+                                ),
+                                textAlign: TextAlign.center,
+                                maxLines: 2, // Allow up to 2 lines for names
+                                overflow: TextOverflow.ellipsis, // Truncate if necessary
+                              ),
+                            ],
+                          );
+                        },
                       );
                     },
-                  );
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Spacer(), // Push the Start button to the center
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => GamePlayScreen(
+                              roomCode: roomCode,
+                              team: team,
+                            ),
+                          ),
+                        );
+                      },
+                      child: Image.asset(
+                        'assets/images/start.png',
+                        width: 150, // Larger width
+                        height: 60, // Larger height
+                      ),
+                    ),
+                    Spacer(flex: 2), // Add more space after the Start button
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => GamePlayScreen(
+                              roomCode: roomCode,
+                              team: team,
+                            ),
+                          ),
+                        );
+                      },
+                      child: Image.asset(
+                        'assets/images/chat.png',
+                        width: 100, // Keep chat button size smaller
+                        height: 50,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: 20),
+            ],
+          ),
+          Align(
+            alignment: Alignment.bottomLeft,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.pop(context);
                 },
+                child: Image.asset(
+                  'assets/images/house.png',
+                  width: 40,
+                  height: 40,
+                ),
               ),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Spacer(), // Push the Start button to the center
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => GamePlayScreen(
-                          roomCode: roomCode,
-                          team: team,
-                        ),
-                      ),
-                    );
-                  },
-                  child: Image.asset(
-                    'assets/images/start.png',
-                    width: 150, // Larger width
-                    height: 60, // Larger height
-                  ),
-                ),
-                Spacer(flex: 2), // Add more space after the Start button
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => GamePlayScreen(
-                          roomCode: roomCode,
-                          team: team,
-                        ),
-                      ),
-                    );
-                  },
-                  child: Image.asset(
-                    'assets/images/chat.png',
-                    width: 100, // Keep chat button size smaller
-                    height: 50,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(height: 20),
         ],
       ),
     );
