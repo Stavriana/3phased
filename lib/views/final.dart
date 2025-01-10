@@ -80,8 +80,9 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
   Widget build(BuildContext context) {
 
     // Automatically clear chosen data when the screen is built
-    WidgetsBinding.instance.addPostFrameCallback((_) => _clearChosenData());
-    
+    // Automatically clear chosen data when the screen is built
+    WidgetsBinding.instance.addPostFrameCallback((_) => widget._clearChosenData());
+  
     final sortedTeams = widget.game.ourteams.values.toList()
 
       ..sort((a, b) => b.points.compareTo(a.points));
