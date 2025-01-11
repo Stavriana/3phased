@@ -25,7 +25,25 @@ class PantomimeScreenState extends State<PantomimeScreen> {
   @override
   void initState() {
     super.initState();
+    _setScreenValueInFirestore();
     _fetchGameData();
+  }
+
+  Future<void> _setScreenValueInFirestore() async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('Rooms')
+          .doc(widget.roomCode)
+          .update({'screen': 2});
+      debugPrint('Screen value set to 2 successfully.');
+    } catch (e) {
+      debugPrint('Error setting screen value: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to set screen value: $e')),
+        );
+      }
+    }
   }
 
   Future<void> _fetchGameData() async {
@@ -40,7 +58,7 @@ class PantomimeScreenState extends State<PantomimeScreen> {
       final data = doc.data()!;
       final roomWords = data['words'] as List<dynamic>;
 
-      final duration = (data['t2'] ?? 60) as int; 
+      final duration = (data['t2'] ?? 60) as int;
 
       words = roomWords.map((word) => word.toString()).toList();
 
@@ -123,12 +141,12 @@ class PantomimeScreenState extends State<PantomimeScreen> {
       body: Stack(
         children: [
           Container(
-            color: Colors.green,  // Changed background color to blue
+            color: Colors.green,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Text(
-                  'PANTOMIME',  // Changed title to 'PANTOMIME'
+                  'PANTOMIME',
                   style: TextStyle(
                     fontSize: 50,
                     fontWeight: FontWeight.bold,
@@ -203,11 +221,11 @@ class PantomimeScreenState extends State<PantomimeScreen> {
               child: GestureDetector(
                 onTap: () {
                   Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const CodeInputView(),
-      ),
-    );
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const CodeInputView(),
+                    ),
+                  );
                 },
                 child: Image.asset(
                   'assets/images/house.png',

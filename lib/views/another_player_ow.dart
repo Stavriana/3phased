@@ -100,7 +100,7 @@ class OneWordTeamPlayingScreenState extends State<OneWordTeamPlayingScreen> {
 
       if (playedPlayers.length == allEligiblePlayers.length) {
         debugPrint('All eligible players have played.');
-        _navigateToPantomimeScreen();
+        _navigateToPointsPage();
         return;
       }
 
@@ -164,7 +164,7 @@ class OneWordTeamPlayingScreenState extends State<OneWordTeamPlayingScreen> {
     if (playedPlayers.length ==
         allTeamsWithPlayers.values.expand((players) => players).length) {
       debugPrint('All players have played.');
-      _navigateToPantomimeScreen();
+      _navigateToPointsPage();
       return;
     }
 
@@ -172,17 +172,19 @@ class OneWordTeamPlayingScreenState extends State<OneWordTeamPlayingScreen> {
     await _initializeTeamAndPlayer();
   }
 
-  void _navigateToPantomimeScreen() {
-    debugPrint('Navigating to OneWordScreen...');
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => PointsPage(
-          roomCode: widget.roomCode,
-        ),
+  void _navigateToPointsPage() {
+  debugPrint('Navigating to PointsPage...');
+  Navigator.pushReplacement(
+    context,
+    MaterialPageRoute(
+      builder: (context) => PointsPage(
+        roomCode: widget.roomCode,
+        currentTeam: currentTeamName ?? "", // Pass the current team
       ),
-    );
-  }
+    ),
+  );
+}
+
 
   @override
   void dispose() {
