@@ -6,15 +6,19 @@ import 'package:eksaminiaia/widgets/points_display.dart';
 import 'package:eksaminiaia/views/code_input_view.dart'; // Import CodeInputView
 import 'package:eksaminiaia/views/final.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'one_word.dart';
+import 'pantomime.dart';
 
 class PointsPage extends StatefulWidget {
   final String roomCode;
+  final String currentTeam; // Add this parameter
 
-  const PointsPage({super.key, required this.roomCode});
+  const PointsPage({super.key, required this.roomCode, required this.currentTeam});
 
   @override
   PointsPageState createState() => PointsPageState();
 }
+
 
 class PointsPageState extends State<PointsPage> {
   late Future<Game?> gameData;
@@ -205,18 +209,49 @@ class PointsPageState extends State<PointsPage> {
                             return;
                           }
 
-                          // If the user is the admin, navigate to the next screen
-                          if (context.mounted) {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => ScoreboardScreen(
-                                  roomCode: widget.roomCode,
-                                  game: game,
-                                ),
-                              ),
-                            );
-                          }
+                          // If the user is the admin, navigate to the appropriate screen based on "screen"
+if (context.mounted) {
+  final screen = roomData['screen'] as int? ?? 0;
+
+  if (screen == 1) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PantomimeScreen(
+          roomCode: widget.roomCode,
+          team: widget.currentTeam, // Replace with the appropriate team field
+        ),
+      ),
+    );
+  } else if (screen == 2) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => OneWordScreen(
+          roomCode: widget.roomCode,
+          team: widget.currentTeam, // Replace with the appropriate team field
+        ),
+      ),
+    );
+  } else if (screen == 3) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ScoreboardScreen(
+          roomCode: widget.roomCode,
+          game: game,
+        ),
+      ),
+    );
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Invalid screen value: $screen'),
+      ),
+    );
+  }
+}
+
                         } catch (e) {
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
