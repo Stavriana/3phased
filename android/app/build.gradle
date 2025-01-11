@@ -29,8 +29,20 @@ android {
         jvmTarget = "17"
     }
 
+    signingConfigs {
+        release {
+            
+            storeFile file("C:/Users/user/eksaminiaia/Eksaminiaia/release-key.jks")
+            storePassword "kozakou749909" // Replace with your keystore password
+            //keyAlias "your-key-alias" // Replace with your key alias
+            keyAlias "keyalias"  
+            keyPassword "kozakou749909" // Replace with your key password
+        }
+    }
+
     buildTypes {
         release {
+            signingConfig signingConfigs.release
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
