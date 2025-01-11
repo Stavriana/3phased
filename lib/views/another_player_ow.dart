@@ -195,10 +195,10 @@ class OneWordTeamPlayingScreenState extends State<OneWordTeamPlayingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('ONE WORD'),
-        backgroundColor: Colors.orangeAccent,
-      ),
+      //appBar: AppBar(
+     //   title: const Text('ONE WORD'),
+     //   backgroundColor: Colors.orangeAccent,
+      //),
       body: Stack(
         children: [
           Container(

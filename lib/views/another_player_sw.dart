@@ -195,10 +195,10 @@ class AnotherTeamPlayingScreenState extends State<AnotherTeamPlayingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('SAY WHAT?'),
-        backgroundColor: Colors.orangeAccent,
-      ),
+      //appBar: AppBar(
+      //  title: const Text('SAY WHAT?'),
+      //  backgroundColor: Colors.orangeAccent,
+      //),
       body: Stack(
         children: [
           Container(

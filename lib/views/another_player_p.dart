@@ -196,10 +196,10 @@ class PantomimeTeamPlayingScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('PANTOMIME'),
-        backgroundColor: Colors.orangeAccent,
-      ),
+      //appBar: AppBar(
+      //  title: const Text('PANTOMIME'),
+      //  backgroundColor: Colors.orangeAccent,
+      //),
       body: Stack(
         children: [
           Container(
