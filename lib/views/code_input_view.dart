@@ -150,7 +150,7 @@ class _CodeInputViewState extends State<CodeInputView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Join/Create Game')),
+      //appBar: AppBar(title: const Text('Join/Create Game')),
       body: Stack(
         children: [
           Padding(
