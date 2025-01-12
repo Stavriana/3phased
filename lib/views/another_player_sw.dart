@@ -1,8 +1,8 @@
 import 'dart:async';
-import 'pantomime.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'code_input_view.dart';
+import 'points_page.dart';
 
 class AnotherTeamPlayingScreen extends StatefulWidget {
   final String roomCode;
@@ -100,7 +100,7 @@ class AnotherTeamPlayingScreenState extends State<AnotherTeamPlayingScreen> {
 
       if (playedPlayers.length == allEligiblePlayers.length) {
         debugPrint('All eligible players have played.');
-        _navigateToPantomimeScreen();
+        _navigateToPointsPage();
         return;
       }
 
@@ -164,7 +164,7 @@ class AnotherTeamPlayingScreenState extends State<AnotherTeamPlayingScreen> {
     if (playedPlayers.length ==
         allTeamsWithPlayers.values.expand((players) => players).length) {
       debugPrint('All players have played.');
-      _navigateToPantomimeScreen();
+      _navigateToPointsPage();
       return;
     }
 
@@ -172,18 +172,19 @@ class AnotherTeamPlayingScreenState extends State<AnotherTeamPlayingScreen> {
     await _initializeTeamAndPlayer();
   }
 
-  void _navigateToPantomimeScreen() {
-    debugPrint('Navigating to PantomimeScreen...');
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => PantomimeScreen(
-          roomCode: widget.roomCode,
-          team: currentTeamName ?? "Unknown Team",
-        ),
+  void _navigateToPointsPage() {
+  debugPrint('Navigating to PointsPage...');
+  Navigator.pushReplacement(
+    context,
+    MaterialPageRoute(
+      builder: (context) => PointsPage(
+        roomCode: widget.roomCode,
+        currentTeam: currentTeamName ?? "", // Pass the current team
       ),
-    );
-  }
+    ),
+  );
+}
+
 
   @override
   void dispose() {
@@ -194,10 +195,10 @@ class AnotherTeamPlayingScreenState extends State<AnotherTeamPlayingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('SAY WHAT?'),
-        backgroundColor: Colors.orangeAccent,
-      ),
+      //appBar: AppBar(
+      //  title: const Text('SAY WHAT?'),
+      //  backgroundColor: Colors.orangeAccent,
+      //),
       body: Stack(
         children: [
           Container(
@@ -269,11 +270,11 @@ class AnotherTeamPlayingScreenState extends State<AnotherTeamPlayingScreen> {
               child: GestureDetector(
                 onTap: () {
                   Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const CodeInputView(),
-      ),
-    );
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const CodeInputView(),
+                    ),
+                  );
                 },
                 child: Image.asset(
                   'assets/images/house.png',

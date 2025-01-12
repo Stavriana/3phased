@@ -1,3 +1,5 @@
+import 'dart:developer'; // For logging
+
 import 'package:eksaminiaia/views/rules.dart';
 import 'package:eksaminiaia/views/team_words.dart';
 import 'package:flutter/material.dart';
@@ -5,6 +7,7 @@ import 'package:get/get.dart'; // For GetX state management
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'set_it_up_page.dart'; // Import SetItUpPage for room creation
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:geolocator/geolocator.dart';
 
 class CodeInputView extends StatefulWidget {
   const CodeInputView({super.key});
@@ -17,29 +20,13 @@ class _CodeInputViewState extends State<CodeInputView> {
   final TextEditingController _codeController = TextEditingController();
   bool _isCodeValid = true;
 
-  /// Function to join a game
   void _joinGame(BuildContext context) async {
-  final enteredCode = _codeController.text.trim().toUpperCase();
+    final enteredCode = _codeController.text.trim().toUpperCase();
 
-  if (enteredCode.isEmpty) {
-    Get.snackbar(
-      'Error',
-      'Please enter a valid room code.',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Colors.red,
-      colorText: Colors.white,
-    );
-    return;
-  }
-
-  try {
-    final docRef = FirebaseFirestore.instance.collection('Rooms').doc(enteredCode);
-    final docSnapshot = await docRef.get();
-
-    if (!docSnapshot.exists) {
+    if (enteredCode.isEmpty) {
       Get.snackbar(
         'Error',
-        'The room code is invalid or does not exist.',
+        'Please enter a valid room code.',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red,
         colorText: Colors.white,
@@ -47,51 +34,110 @@ class _CodeInputViewState extends State<CodeInputView> {
       return;
     }
 
-    final roomData = docSnapshot.data();
+    try {
+      final docRef =
+          FirebaseFirestore.instance.collection('Rooms').doc(enteredCode);
+      final docSnapshot = await docRef.get();
 
-    if (roomData == null) {
+      if (!docSnapshot.exists) {
+        Get.snackbar(
+          'Error',
+          'The room code is invalid or does not exist.',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+        return;
+      }
+
+      final roomData = docSnapshot.data();
+
+      if (roomData == null) {
+        Get.snackbar(
+          'Error',
+          'Failed to load room data.',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+        return;
+      }
+
+      final int playersIn = roomData['playersin'] ?? 0;
+      final int numOfPlayers = roomData['numofplayers'] ?? 0;
+
+      if (playersIn >= numOfPlayers - 1) {
+        Get.snackbar(
+          'Room Full',
+          'The room is already full. Please try another room.',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.orange,
+          colorText: Colors.white,
+        );
+        return;
+      }
+
+      // Get locationadmin's coordinates
+      final locationAdmin = roomData['locationadmin'];
+      if (locationAdmin != null) {
+        final adminLatitude = locationAdmin['latitude'] as double?;
+        final adminLongitude = locationAdmin['longitude'] as double?;
+
+        if (adminLatitude != null && adminLongitude != null) {
+          // Get player's current location
+          final playerPosition = await _getUserLocation();
+          if (playerPosition == null) {
+            Get.snackbar(
+              'Error',
+              'Failed to fetch your location. Please enable location services and try again.',
+              snackPosition: SnackPosition.BOTTOM,
+              backgroundColor: Colors.red,
+              colorText: Colors.white,
+            );
+            return;
+          }
+
+          // Calculate distance between player and admin
+          final distanceInMeters = Geolocator.distanceBetween(
+            playerPosition.latitude,
+            playerPosition.longitude,
+            adminLatitude,
+            adminLongitude,
+          );
+
+          if (distanceInMeters > 200) {
+            Get.snackbar(
+              'Too Far',
+              'You are more than 200 meters away from the room admin.',
+              snackPosition: SnackPosition.BOTTOM,
+              backgroundColor: Colors.orange,
+              colorText: Colors.white,
+            );
+            return;
+          }
+        }
+      } else {
+        log('No locationadmin found. Proceeding without location check.');
+      }
+
+      // Increment the playersIn count
+      await docRef.update({
+        'playersin': FieldValue.increment(1),
+      });
+
+      // Navigate to TeamWordsScreen
+      Get.to(() => TeamWordsScreen(roomCode: enteredCode));
+    } catch (e) {
+      log('Error joining game: $e', name: 'GameService');
       Get.snackbar(
         'Error',
-        'Failed to load room data.',
+        'An error occurred while joining the room. Please try again later.',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red,
         colorText: Colors.white,
       );
-      return;
     }
-
-    final int playersIn = roomData['playersin'] ?? 0;
-    final int numOfPlayers = roomData['numofplayers'] ?? 0;
-
-    if (playersIn >= numOfPlayers-1) {
-      Get.snackbar(
-        'Room Full',
-        'The room is already full. Please try another room.',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.orange,
-        colorText: Colors.white,
-      );
-      return;
-    }
-
-    // Increment the playersIn count in the Firestore document
-    await docRef.update({
-      'playersin': FieldValue.increment(1),
-    });
-
-    // Navigate to TeamWordsScreen
-    Get.to(() => TeamWordsScreen(roomCode: enteredCode));
-  } catch (e) {
-    Get.snackbar(
-      'Error',
-      'An error occurred while joining the room. Please try again later.',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Colors.red,
-      colorText: Colors.white,
-    );
   }
- }
-
 
   void _createRoom(BuildContext context) async {
     try {
@@ -111,6 +157,10 @@ class _CodeInputViewState extends State<CodeInputView> {
       final userUid = currentUser.uid;
       final roomCode = _generateRandomRoomCode();
 
+      // Get user location
+      final position = await _getUserLocation();
+
+      // Create or update room with locationadmin field
       await FirebaseFirestore.instance.collection('Rooms').doc(roomCode).set({
         'adminId': userUid,
         'id': roomCode,
@@ -119,12 +169,20 @@ class _CodeInputViewState extends State<CodeInputView> {
         'numofwords': 5,
         'numofplayers': 4,
         'numofteams': 2,
-      });
+        'playersin': 0,
+        'locationadmin': position != null
+            ? {
+                'latitude': position.latitude,
+                'longitude': position.longitude,
+              }
+            : null, // Set null if position is unavailable
+      }, SetOptions(merge: true)); // Use merge: true to ensure no overwrites
 
       if (mounted) {
         Get.to(() => SetItUpPage(roomCode: roomCode));
       }
     } catch (e) {
+      log('Error creating room: $e', name: 'GameService');
       Get.snackbar(
         'Error',
         'Failed to create room. Please try again later.',
@@ -132,6 +190,39 @@ class _CodeInputViewState extends State<CodeInputView> {
         backgroundColor: Colors.red,
         colorText: Colors.white,
       );
+    }
+  }
+
+  Future<Position?> _getUserLocation() async {
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        throw Exception('Location services are disabled.');
+      }
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          throw Exception('Location permissions are denied.');
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        throw Exception(
+          'Location permissions are permanently denied. Cannot request permissions.',
+        );
+      }
+
+      return await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          distanceFilter: 10,
+        ),
+      );
+    } catch (e) {
+      log('Error fetching location: $e', name: 'LocationService');
+      return null;
     }
   }
 
@@ -184,7 +275,9 @@ class _CodeInputViewState extends State<CodeInputView> {
                         height: 50,
                         padding: const EdgeInsets.symmetric(horizontal: 12.0),
                         decoration: BoxDecoration(
-                          color: _isCodeValid ? Colors.white : Colors.red.shade900,
+                          color: _isCodeValid
+                              ? Colors.white
+                              : Colors.red.shade900,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: TextField(
@@ -242,7 +335,7 @@ class _CodeInputViewState extends State<CodeInputView> {
           Align(
             alignment: Alignment.bottomLeft,
             child: Padding(
-               padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(16.0),
               child: GestureDetector(
                 onTap: () {
                   Navigator.push(

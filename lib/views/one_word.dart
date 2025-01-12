@@ -25,7 +25,25 @@ class OneWordScreenState extends State<OneWordScreen> {
   @override
   void initState() {
     super.initState();
+    _setScreenValueInFirestore();
     _fetchGameData();
+  }
+
+  Future<void> _setScreenValueInFirestore() async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('Rooms')
+          .doc(widget.roomCode)
+          .update({'screen': 3});
+      debugPrint('Screen value set to 3 successfully.');
+    } catch (e) {
+      debugPrint('Error setting screen value: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to set screen value: $e')),
+        );
+      }
+    }
   }
 
   Future<void> _fetchGameData() async {
@@ -40,7 +58,7 @@ class OneWordScreenState extends State<OneWordScreen> {
       final data = doc.data()!;
       final roomWords = data['words'] as List<dynamic>;
 
-      final duration = (data['t3'] ?? 60) as int;  // Changed 't2' to 't3'
+      final duration = (data['t3'] ?? 60) as int; // Changed 't2' to 't3'
 
       words = roomWords.map((word) => word.toString()).toList();
 
@@ -123,12 +141,12 @@ class OneWordScreenState extends State<OneWordScreen> {
       body: Stack(
         children: [
           Container(
-            color: Colors.blue,  // Changed background color to green
+            color: Colors.blue, // Changed background color to green
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Text(
-                  'ONE WORD',  // Changed title to 'ONE WORD'
+                  'ONE WORD', // Changed title to 'ONE WORD'
                   style: TextStyle(
                     fontSize: 50,
                     fontWeight: FontWeight.bold,
@@ -203,11 +221,11 @@ class OneWordScreenState extends State<OneWordScreen> {
               child: GestureDetector(
                 onTap: () {
                   Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const CodeInputView(),
-      ),
-    );
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const CodeInputView(),
+                    ),
+                  );
                 },
                 child: Image.asset(
                   'assets/images/house.png',

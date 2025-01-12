@@ -56,19 +56,27 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
     }
   }
 
-  void _playSound() async {
-    try {
-      String soundUrl = await _fetchSoundUrl();
-      await _audioPlayer.setUrl(soundUrl);
-      await _audioPlayer.play();
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error playing sound: $e')),
-        );
-      }
+   void _playSound() async {
+   try {
+    String soundUrl = await _fetchSoundUrl();
+    
+    // Load the sound URL
+    await _audioPlayer.setUrl(soundUrl);
+
+    // Set a playback clip from the start (0 seconds) to 7 seconds
+    await _audioPlayer.setClip(start: const Duration(seconds: 0), end: const Duration(seconds: 5));
+
+    // Play the audio
+    await _audioPlayer.play();
+  } catch (e) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error playing sound: $e')),
+      );
     }
   }
+ }
+
 
   @override
   void dispose() {

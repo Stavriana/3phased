@@ -25,7 +25,25 @@ class GamePlayScreenState extends State<GamePlayScreen> {
   @override
   void initState() {
     super.initState();
+    _setScreenValueInFirestore();
     _fetchGameData();
+  }
+
+  Future<void> _setScreenValueInFirestore() async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('Rooms')
+          .doc(widget.roomCode)
+          .update({'screen': 1});
+      debugPrint('Screen value set to 1 successfully.');
+    } catch (e) {
+      debugPrint('Error setting screen value: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to set screen value: $e')),
+        );
+      }
+    }
   }
 
   Future<void> _fetchGameData() async {
@@ -203,11 +221,11 @@ class GamePlayScreenState extends State<GamePlayScreen> {
               child: GestureDetector(
                 onTap: () {
                   Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const CodeInputView(),
-      ),
-    );
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const CodeInputView(),
+                    ),
+                  );
                 },
                 child: Image.asset(
                   'assets/images/house.png',

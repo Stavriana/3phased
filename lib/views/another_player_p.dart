@@ -1,8 +1,8 @@
 import 'dart:async';
-import 'one_word.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'code_input_view.dart';
+import 'points_page.dart';
 
 class PantomimeTeamPlayingScreen extends StatefulWidget {
   final String roomCode;
@@ -101,7 +101,7 @@ class PantomimeTeamPlayingScreenState
 
       if (playedPlayers.length == allEligiblePlayers.length) {
         debugPrint('All eligible players have played.');
-        _navigateToPantomimeScreen();
+        _navigateToPointsPage();
         return;
       }
 
@@ -165,7 +165,7 @@ class PantomimeTeamPlayingScreenState
     if (playedPlayers.length ==
         allTeamsWithPlayers.values.expand((players) => players).length) {
       debugPrint('All players have played.');
-      _navigateToPantomimeScreen();
+      _navigateToPointsPage();
       return;
     }
 
@@ -173,18 +173,19 @@ class PantomimeTeamPlayingScreenState
     await _initializeTeamAndPlayer();
   }
 
-  void _navigateToPantomimeScreen() {
-    debugPrint('Navigating to PantomimeScreen...');
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => OneWordScreen(
-          roomCode: widget.roomCode,
-          team: currentTeamName ?? "Unknown Team",
-        ),
+  void _navigateToPointsPage() {
+  debugPrint('Navigating to PointsPage...');
+  Navigator.pushReplacement(
+    context,
+    MaterialPageRoute(
+      builder: (context) => PointsPage(
+        roomCode: widget.roomCode,
+        currentTeam: currentTeamName ?? "", // Pass the current team
       ),
-    );
-  }
+    ),
+  );
+}
+
 
   @override
   void dispose() {
@@ -195,10 +196,10 @@ class PantomimeTeamPlayingScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('PANTOMIME'),
-        backgroundColor: Colors.orangeAccent,
-      ),
+      //appBar: AppBar(
+      //  title: const Text('PANTOMIME'),
+      //  backgroundColor: Colors.orangeAccent,
+      //),
       body: Stack(
         children: [
           Container(
@@ -270,11 +271,11 @@ class PantomimeTeamPlayingScreenState
               child: GestureDetector(
                 onTap: () {
                   Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const CodeInputView(),
-      ),
-    );
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const CodeInputView(),
+                    ),
+                  );
                 },
                 child: Image.asset(
                   'assets/images/house.png',
