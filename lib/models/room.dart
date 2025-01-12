@@ -9,6 +9,7 @@ class Game {
   final String? adminId; // ID of the room creator
   final Map<String, Team> ourteams;
   final int playersin; // Tracks the total number of players
+  final LocationAdmin? locationadmin; // Admin's location
 
   Game({
     this.id,
@@ -21,6 +22,7 @@ class Game {
     required this.adminId,
     this.ourteams = const {},
     this.playersin = 0,
+    this.locationadmin,
   });
 
   // Convert to Firestore-compatible JSON format
@@ -36,6 +38,7 @@ class Game {
       "adminId": adminId,
       "ourteams": ourteams.map((key, team) => MapEntry(key, team.toJson())),
       "playersin": playersin,
+      "locationadmin": locationadmin?.toJson(),
     };
   }
 
@@ -55,6 +58,35 @@ class Game {
           ) ??
           {},
       playersin: data["playersin"] ?? 0,
+      locationadmin: data["locationadmin"] != null
+          ? LocationAdmin.fromJson(data["locationadmin"])
+          : null,
+    );
+  }
+}
+
+class LocationAdmin {
+  final double latitude;
+  final double longitude;
+
+  LocationAdmin({
+    required this.latitude,
+    required this.longitude,
+  });
+
+  // Convert to Firestore format
+  Map<String, dynamic> toJson() {
+    return {
+      "latitude": latitude,
+      "longitude": longitude,
+    };
+  }
+
+  // Create a LocationAdmin object from Firestore data
+  factory LocationAdmin.fromJson(Map<String, dynamic> data) {
+    return LocationAdmin(
+      latitude: data["latitude"]?.toDouble() ?? 0.0,
+      longitude: data["longitude"]?.toDouble() ?? 0.0,
     );
   }
 }

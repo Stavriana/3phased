@@ -4,9 +4,8 @@ import 'package:eksaminiaia/controllers.dart/updateroom_controller.dart';
 import 'package:eksaminiaia/repositories/updateroom_repository.dart';
 import 'package:eksaminiaia/widgets/custom_counter_widget.dart';
 import 'package:eksaminiaia/widgets/custom_slider_widget.dart';
-//import 'teams_setup.dart'; // Ensure this file path is correct
 import 'teams_setup.dart';
-import 'code_input_view.dart';
+
 class SetItUpPage extends StatelessWidget {
   final String roomCode;
 
@@ -112,17 +111,7 @@ class SetItUpPage extends StatelessWidget {
                         GestureDetector(
                           onTap: () async {
                             try {
-                              // Ensure adminId is not null or empty
-                              if (controller.adminId.value.isEmpty) {
-                                Get.snackbar(
-                                  'Error',
-                                  'Admin ID is not set. Please ensure you are logged in.',
-                                  snackPosition: SnackPosition.BOTTOM,
-                                );
-                                return;
-                              }
-
-                              // Save the room details
+                              // Save the room details excluding locationadmin
                               await controller.saveRoom(
                                 roomCode: roomCode,
                                 teams: controller.numOfTeams.value,
@@ -137,17 +126,16 @@ class SetItUpPage extends StatelessWidget {
                               // Navigate to TeamsSet page
                               Get.to(() => TeamsSet(roomCode: roomCode));
 
-
                               // Show success message
                               Get.snackbar(
                                 'Success',
-                                'Room saved successfully!',
+                                'Room updated successfully!',
                                 snackPosition: SnackPosition.BOTTOM,
                               );
                             } catch (e) {
                               Get.snackbar(
                                 'Error',
-                                'Failed to save room: ${e.toString()}',
+                                'Failed to update room: ${e.toString()}',
                                 snackPosition: SnackPosition.BOTTOM,
                               );
                             }
@@ -176,25 +164,6 @@ class SetItUpPage extends StatelessWidget {
                   ),
                 ),
               ],
-            ),
-            Align(
-              alignment: Alignment.bottomLeft,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: GestureDetector(
-                  onTap: () {
-                   Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const CodeInputView()),
-                  );
-                },
-                  child: Image.asset(
-                    'assets/images/house.png',
-                    width: 40,
-                    height: 40,
-                  ),
-                ),
-              ),
             ),
           ],
         ),
