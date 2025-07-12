@@ -1,16 +1,57 @@
-# eksaminiaia
+# 🎉 3Phasiko
 
-A new Flutter project.
+**Κατηγορία:** Interactive Entertainment  
+**Promo:** _Μία παρέα, τρεις φάσεις, άπειρο γέλιο._
 
-## Getting Started
+Το **3Phasiko** είναι το απόλυτο party game για εσένα και την παρέα σου! Παίξτε τρεις ξεκαρδιστικούς γύρους γεμάτους φαντασία, δράση και αστείες στιγμές, δοκιμάζοντας την ταχύτητα, την παρατηρητικότητα και την ευρηματικότητά σας.
 
-This project is a starting point for a Flutter application.
+## 🧩 Περιγραφή παιχνιδιού
 
-A few resources to get you started if this is your first Flutter project:
+Στο 3Phasiko κάθε παίκτης συνεισφέρει λέξεις που θα χρησιμοποιηθούν καθ’ όλη τη διάρκεια του παιχνιδιού. Το παιχνίδι περιλαμβάνει 3 γύρους:
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+1. **Say What?**  
+   Περιγραφή της λέξης χωρίς να την πεις.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+2. **Pantomime**  
+   Παντομίμα χωρίς φωνή ή ήχους.
+
+3. **One Word**  
+   Περιγραφή με μόνο **μία** λέξη. Αν χρησιμοποιηθεί παραπάνω από μία, ο γύρος τερματίζεται!
+
+⏱ Το παιχνίδι είναι ενάντια στον χρόνο. Δεν επιτρέπεται το “πάσο”!
+
+---
+
+## ⚙️ Λειτουργίες
+
+### 🎮 Gamification
+- ✅ Πόντοι για σωστές απαντήσεις
+- ❌ Ποινές για παραβιάσεις (λέξη στον 1ο γύρο, φωνή στον 2ο, >1 λέξη στον 3ο)
+- 📊 Σκορ ανά γύρο με χρώματα ομάδων
+
+### 👤 Εξατομίκευση χρηστών
+- Όνομα & προφίλ με φωτογραφία ή avatar
+- Επιλογή ονόματος και χρώματος ομάδας από τον admin
+
+### 🔊 Ήχος & 📷 Κάμερα
+- Click sounds κατά τη δημιουργία δωματίου
+- Μουσική/εφέ κατά την εμφάνιση σκορ
+- Φωτογραφία κατά τη δημιουργία προφίλ
+- Εμφάνιση προφίλ παίκτη ανά γύρο
+
+### 💬 Επικοινωνία
+- Ενσωματωμένο chat στο waiting room για σύνδεση και συνεννόηση πριν την έναρξη
+
+### 📍 GPS
+- Επιβεβαίωση ότι όλοι οι παίκτες βρίσκονται σε ακτίνα 200μ από τον admin για την εκκίνηση του παιχνιδιού
+
+---
+
+## 🛠 Τεχνολογίες
+
+- **Flutter** (Dart) — βασική υλοποίηση
+- **Firebase** — authentication και real-time database
+- **Camera & Audio APIs** — φωτογραφία, ήχος
+- **Platform-specific folders**: iOS, Android, Web, Windows, macOS, Linux
+
+---
